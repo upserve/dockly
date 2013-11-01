@@ -14,15 +14,16 @@ Gem::Specification.new do |gem|
   gem.name          = "builder"
   gem.require_paths = %w{lib}
   gem.version       = Builder::VERSION
+  gem.add_dependency 'docker-api', '~> 1.5.2'
+  gem.add_dependency 'dsl', '0.0.2'
+  gem.add_dependency 'excon'
+  gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 0.4.42'
   gem.add_dependency 'grit'
-  gem.add_dependency 'foreman'
-  gem.add_dependency 'excon'
-  gem.add_dependency 'docker-api', '~> 1.5.2'
-  gem.add_development_dependency 'rake'
-  gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
-  gem.add_development_dependency 'webmock'
+  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'vcr'
+  gem.add_development_dependency 'webmock'
 end
