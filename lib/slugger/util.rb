@@ -1,6 +1,6 @@
 require 'grit'
 
-module SwipelyBuilder::Util
+module Slugger::Util
   extend self
 
   def is_tar?(path)

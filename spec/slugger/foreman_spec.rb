@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe SwipelyBuilder::Foreman do
+describe Slugger::Foreman do
   describe '#create!' do
     subject do
-      SwipelyBuilder::Foreman.new do
+      Slugger::Foreman.new do
         name :foreman
         init_dir '/etc/systemd/system'
         build_dir 'build/foreman'

@@ -1,10 +1,10 @@
 require 'tempfile'
 
-class SwipelyBuilder::BuildCache
+class Slugger::BuildCache
   include DSL::DSL
   include DSL::Logger::Mixin
 
-  logger_prefix '[builder build_cache]'
+  logger_prefix '[slugger build_cache]'
 
   attr_accessor :image
   dsl_attribute :s3_bucket, :s3_object_prefix, :hash_command, :output_dir, :build_command,
@@ -126,6 +126,6 @@ class SwipelyBuilder::BuildCache
   end
 
   def connection
-    SwipelyBuilder::AWS.s3
+    Slugger::AWS.s3
   end
 end

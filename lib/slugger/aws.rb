@@ -1,7 +1,7 @@
 require 'fog/aws'
 
 # This module holds the connections for all AWS services used by the gem.
-module SwipelyBuilder::AWS
+module Slugger::AWS
   extend self
 
   def service(name, klass)

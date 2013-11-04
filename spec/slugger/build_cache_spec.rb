@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe SwipelyBuilder::BuildCache, :docker do
+describe Slugger::BuildCache, :docker do
   subject { described_class.new(:name => :test_build_cache) }
   let(:image) { ::Docker::Image.build('from base') }
 

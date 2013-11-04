@@ -3,7 +3,7 @@
 $LOAD_PATH.unshift( File.join( File.dirname(__FILE__), 'lib' ) )
 
 require 'rake'
-require 'swipely_builder'
+require 'slugger'
 require 'rspec/core/rake_task'
 require 'cane/rake_task'
 

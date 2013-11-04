@@ -1,19 +1,19 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/swipely_builder/version', __FILE__)
+require File.expand_path('../lib/slugger/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Swipely, Inc."]
   gem.email         = %w{tomhulihan@swipely.com bright@swipely.com toddlunter@swipely.com}
   gem.description   = %q{Packaging made easy}
   gem.summary       = %q{Packaging made easy}
-  gem.homepage      = "https://github.com/swipely/builder"
+  gem.homepage      = "https://github.com/swipely/slugger"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "swipely-builder"
+  gem.name          = "slugger"
   gem.require_paths = %w{lib}
-  gem.version       = SwipelyBuilder::VERSION
+  gem.version       = Slugger::VERSION
   gem.add_dependency 'docker-api', '~> 1.5.2'
   gem.add_dependency 'dsl', '0.0.3'
   gem.add_dependency 'excon'

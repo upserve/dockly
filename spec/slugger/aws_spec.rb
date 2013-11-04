@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe SwipelyBuilder::AWS do
-  subject { SwipelyBuilder::AWS }
+describe Slugger::AWS do
+  subject { Slugger::AWS }
 
   describe '#reset_cache!' do
     before do
