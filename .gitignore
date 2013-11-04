@@ -1,2 +1,15 @@
-Gemfile.lock
+# bundler
+.bundle
+
+# OSX
+.DS_Store
+
+# Vim
 *.swp
+
+Gemfile.lock
+*.gem
+build/
+dist/
+
+docker-export-ubuntu-latest.tar.gz

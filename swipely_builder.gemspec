@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/builder/version', __FILE__)
+require File.expand_path('../lib/swipely_builder/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Swipely, Inc."]
@@ -11,12 +11,13 @@ Gem::Specification.new do |gem|
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "builder"
+  gem.name          = "swipely-builder"
   gem.require_paths = %w{lib}
-  gem.version       = Builder::VERSION
+  gem.version       = SwipelyBuilder::VERSION
   gem.add_dependency 'docker-api', '~> 1.5.2'
-  gem.add_dependency 'dsl', '0.0.2'
+  gem.add_dependency 'dsl', '0.0.3'
   gem.add_dependency 'excon'
+  gem.add_dependency 'fog', '~> 1.14.0'
   gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 0.4.42'
   gem.add_dependency 'grit'
