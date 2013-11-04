@@ -14,6 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "slugger"
   gem.require_paths = %w{lib}
   gem.version       = Slugger::VERSION
+  gem.add_dependency 'clamp', '~> 0.6'
   gem.add_dependency 'docker-api', '~> 1.5.2'
   gem.add_dependency 'dsl', '0.0.3'
   gem.add_dependency 'excon'
