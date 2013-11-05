@@ -8,6 +8,7 @@ Gem::Specification.new do |gem|
   gem.summary       = %q{Packaging made easy}
   gem.homepage      = "https://github.com/swipely/dockly"
   gem.files         = `git ls-files`.split($\)
+  gem.license       = 'MIT'
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "dockly"
