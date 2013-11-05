@@ -1,0 +1,11 @@
+{
+  "built_on": "master",
+  "duration": 207.759,
+  "full_display_name": "gem.slugger #1 - master",
+  "id": "2013-11-05_13-24-14",
+  "number": 1,
+  "result": "FAILURE",
+  "status_message": "?",
+  "time": "2013-11-05 13:24:14 -0500",
+  "url": "job/gem.slugger/1/"
+}
