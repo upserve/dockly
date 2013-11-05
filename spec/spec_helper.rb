@@ -2,13 +2,13 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'rspec'
-require 'slugger'
+require 'dockly'
 
 Fog.mock!
 
-Slugger::AWS.aws_access_key_id = 'MOCK_KEY'
-Slugger::AWS.aws_secret_access_key = 'MOCK_SECRET'
-DSL::Logger.disable! unless ENV['ENABLE_LOGGER'] == 'true'
+Dockly::AWS.aws_access_key_id = 'MOCK_KEY'
+Dockly::AWS.aws_secret_access_key = 'MOCK_SECRET'
+Dockly::Util::Logger.disable! unless ENV['ENABLE_LOGGER'] == 'true'
 
 RSpec.configure do |config|
   config.mock_with :rspec

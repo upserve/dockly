@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'tempfile'
 
-describe Slugger::Deb do
+describe Dockly::Deb do
   describe '#create_package!' do
     subject do
-      Slugger::Deb.new do
+      Dockly::Deb.new do
         package_name 'my-sweet-deb'
         version '77.0'
         release '8'
@@ -60,7 +60,7 @@ describe Slugger::Deb do
       it 'builds the docker image and adds it to the deb' do
         subject.create_package!
         `dpkg --contents #{filename}`
-            .lines.grep(/slugger-deb_test-image\.tgz/).should_not be_empty
+            .lines.grep(/dockly-deb_test-image\.tgz/).should_not be_empty
       end
     end
 
@@ -72,7 +72,7 @@ describe Slugger::Deb do
       before do
         subject.file file1.path, '/etc/file1'
         subject.file file2.path, '/etc/file2'
-        subject.file './lib/slugger/.', '/etc/deploys'
+        subject.file './lib/dockly/.', '/etc/deploys'
         subject.file './lib/foreman/', '/etc/foreman'
         subject.file './spec', '/etc/specs'
       end
@@ -91,7 +91,7 @@ describe Slugger::Deb do
         expect(contents.lines.grep(/\/etc\/file2/)).to_not be_empty
         expect(contents.lines.grep(/\/etc\/deploys\/deb.rb/)).to_not be_empty
         expect(contents.lines.grep(/\/etc\/foreman\/foreman\/cli_fix.rb/)).to_not be_empty
-        expect(contents.lines.grep(/\/etc\/specs\/spec\/slugger_spec.rb/)).to_not be_empty
+        expect(contents.lines.grep(/\/etc\/specs\/spec\/dockly_spec.rb/)).to_not be_empty
       end
     end
 
@@ -111,7 +111,7 @@ describe Slugger::Deb do
 
   describe '#exists?' do
     subject do
-      Slugger::Deb.new do
+      Dockly::Deb.new do
         package_name 'deb-4-u-buddy'
         version '77.0'
         release '8'
@@ -123,7 +123,7 @@ describe Slugger::Deb do
 
     context 'when the object does exist' do
       before do
-        Slugger::AWS.s3.stub(:head_object).and_return {}
+        Dockly::AWS.s3.stub(:head_object).and_return {}
       end
 
       it 'is true' do
@@ -133,7 +133,7 @@ describe Slugger::Deb do
 
     context 'when the object does not exist' do
       before do
-        Slugger::AWS.s3.stub(:head_object).and_raise(Excon::Errors::NotFound.new "NotFound")
+        Dockly::AWS.s3.stub(:head_object).and_raise(Excon::Errors::NotFound.new "NotFound")
       end
 
       it 'is true' do
@@ -144,7 +144,7 @@ describe Slugger::Deb do
 
   describe '#upload_to_s3' do
     subject do
-      Slugger::Deb.new do
+      Dockly::Deb.new do
         package_name 'deb-4-u-buddy'
         version '77.0'
         release '8'
@@ -156,7 +156,7 @@ describe Slugger::Deb do
 
     context 'when the s3_bucket is nil' do
       it 'does nothing' do
-        Slugger::AWS.should_not_receive(:s3)
+        Dockly::AWS.should_not_receive(:s3)
         subject.upload_to_s3
       end
     end
@@ -179,12 +179,12 @@ describe Slugger::Deb do
 
         it 'creates the s3 bucket' do
           subject.upload_to_s3
-          Slugger::AWS.s3.get_bucket(bucket_name).body.should_not be_nil
+          Dockly::AWS.s3.get_bucket(bucket_name).body.should_not be_nil
         end
 
         it 'inserts the deb package into that bucket' do
           subject.upload_to_s3
-          Slugger::AWS.s3.get_bucket(bucket_name, subject.s3_object_name).body.should_not be_nil
+          Dockly::AWS.s3.get_bucket(bucket_name, subject.s3_object_name).body.should_not be_nil
         end
       end
     end
@@ -192,7 +192,7 @@ describe Slugger::Deb do
 
   describe "#file" do
     subject do
-      Slugger::Deb.new do
+      Dockly::Deb.new do
         package_name 'my-sweet-deb'
         version '77.0'
         release '8'
@@ -219,7 +219,7 @@ describe Slugger::Deb do
 
   describe '#build' do
     subject do
-      Slugger::Deb.new do
+      Dockly::Deb.new do
         package_name 'my-sweet-deb'
         version '77.0'
         release '8'

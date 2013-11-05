@@ -5,15 +5,15 @@ require 'zlib'
 require 'rubygems/package'
 require 'fileutils'
 
-class Slugger::Docker
-  include DSL::DSL
-  include DSL::Logger::Mixin
+class Dockly::Docker
+  include Dockly::Util::DSL
+  include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger docker]'
+  logger_prefix '[dockly docker]'
   dsl_attribute :import, :git_archive, :build, :repo, :tag, :build_dir, :package_dir,
     :timeout, :cleanup_images, :build_caches
 
-  default_value :repo, 'slugger'
+  default_value :repo, 'dockly'
   default_value :build_dir, 'build/docker'
   default_value :package_dir, '/opt/docker'
   default_value :build_caches, []
@@ -56,9 +56,9 @@ class Slugger::Docker
   end
 
   def ensure_tar(file_name)
-    if Slugger::Util.is_tar?(file_name)
+    if Dockly::Util::Tar.is_tar?(file_name)
       file_name
-    elsif Slugger::Util.is_gzip?(file_name)
+    elsif Dockly::Util::Tar.is_gzip?(file_name)
       file_name
     else
       raise "Expected a (possibly gzipped) tar: #{file_name}"
@@ -74,9 +74,9 @@ class Slugger::Docker
 
     FileUtils.rm_rf(git_archive_dir)
     FileUtils.mkdir_p(git_archive_dir)
-    info "archiving #{Slugger::Util.git_sha}"
+    info "archiving #{Dockly::Util::Git.git_sha}"
     Grit::Git.with_timeout(120) do
-      Slugger::Util.git_repo.archive_to_file(Slugger::Util.git_sha, prefix, git_archive_path, 'tar', 'cat')
+      Dockly::Util::Git.git_repo.archive_to_file(Dockly::Util::Git.git_sha, prefix, git_archive_path, 'tar', 'cat')
     end
     git_archive_path
   end
@@ -159,11 +159,11 @@ class Slugger::Docker
   end
 
   def build_cache(&block)
-    build_caches << Slugger::BuildCache.new(&block)
+    build_caches << Dockly::BuildCache.new(&block)
   end
 
 private
   def connection
-    Slugger::AWS.s3
+    Dockly::AWS.s3
   end
 end

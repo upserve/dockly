@@ -1,6 +1,4 @@
-require 'grit'
-
-module Slugger::Util
+module Dockly::Util::Tar
   extend self
 
   def is_tar?(path)
@@ -25,17 +23,5 @@ module Slugger::Util
     end
     magic = magic.unpack('H*')[0]
     magic == "1f8b"
-  end
-
-  def strip_heredoc(str)
-    str.gsub(/^#{str[/\A\s*/]}/, '')
-  end
-
-  def git_repo
-    @git_repo ||= Grit::Repo.new('.')
-  end
-
-  def git_sha
-    @git_sha ||= git_repo.git.show.lines.first.chomp.match(/^commit ([a-f0-9]+)$/)[1][0..6] rescue 'unknown'
   end
 end

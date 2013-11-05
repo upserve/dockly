@@ -2,7 +2,7 @@
 
 require 'rubygems'
 $: << File.join(File.dirname(__FILE__), "..", "lib")
-require 'slugger'
-require 'slugger/cli'
+require 'dockly'
+require 'dockly/cli'
 
-Slugger::Cli.run
+Dockly::Cli.run

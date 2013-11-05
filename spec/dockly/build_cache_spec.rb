@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Slugger::BuildCache, :docker do
+describe Dockly::BuildCache, :docker do
   subject { described_class.new(:name => :test_build_cache) }
   let(:image) { ::Docker::Image.build('from base') }
 

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Slugger::AWS do
-  subject { Slugger::AWS }
+describe Dockly::AWS do
+  subject { Dockly::AWS }
 
   describe '#reset_cache!' do
     before do

@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Slugger::Foreman do
+describe Dockly::Foreman do
   describe '#create!' do
     subject do
-      Slugger::Foreman.new do
+      Dockly::Foreman.new do
         name :foreman
         init_dir '/etc/systemd/system'
         build_dir 'build/foreman'

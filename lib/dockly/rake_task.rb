@@ -1,9 +1,11 @@
 require 'rake'
-require 'slugger'
+require 'dockly'
 
-$rake_task_logger = DSL::Logger.new('[slugger rake_task]', STDOUT, false)
+$rake_task_logger = Dockly::Util::Logger.new('[dockly rake_task]', STDOUT, false)
 
-Slugger.setup
+if File.exist?('dockly.rb')
+  Dockly.setup
+end
 
 class Rake::DebTask < Rake::Task
   def needed?
@@ -12,7 +14,7 @@ class Rake::DebTask < Rake::Task
   end
 
   def package
-    Slugger::Deb[name.split(':').last.to_sym]
+    Dockly::Deb[name.split(':').last.to_sym]
   end
 end
 
@@ -22,13 +24,13 @@ module Rake::DSL
   end
 end
 
-namespace :slugger do
+namespace :dockly do
   task :load do
-    raise "No slugger.rb found!" unless File.exist?('slugger.rb')
+    raise "No dockly.rb found!" unless File.exist?('dockly.rb')
   end
 
   namespace :deb do
-    Slugger::Deb.instances.values.each do |inst|
+    Dockly::Deb.instances.values.each do |inst|
       deb inst.name => 'deployz:load' do |name|
         Thread.current[:rake_task] = name
         inst.build

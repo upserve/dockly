@@ -1,22 +1,21 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/slugger/version', __FILE__)
+require File.expand_path('../lib/dockly/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Swipely, Inc."]
   gem.email         = %w{tomhulihan@swipely.com bright@swipely.com toddlunter@swipely.com}
   gem.description   = %q{Packaging made easy}
   gem.summary       = %q{Packaging made easy}
-  gem.homepage      = "https://github.com/swipely/slugger"
-
+  gem.homepage      = "https://github.com/swipely/dockly"
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
-  gem.name          = "slugger"
+  gem.name          = "dockly"
   gem.require_paths = %w{lib}
-  gem.version       = Slugger::VERSION
+  gem.version       = Dockly::VERSION
   gem.add_dependency 'clamp', '~> 0.6'
   gem.add_dependency 'docker-api', '~> 1.5.2'
-  gem.add_dependency 'dsl', '0.0.3'
+  gem.add_dependency 'dockly-util'
   gem.add_dependency 'excon'
   gem.add_dependency 'fog', '~> 1.14.0'
   gem.add_dependency 'foreman'

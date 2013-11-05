@@ -1,15 +1,15 @@
 require 'fpm'
 
-class Slugger::Deb
-  include DSL::DSL
-  include DSL::Logger::Mixin
+class Dockly::Deb
+  include Dockly::Util::DSL
+  include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger deb]'
+  logger_prefix '[dockly deb]'
   dsl_attribute :package_name, :version, :release, :arch, :build_dir,
                 :pre_install, :post_install, :pre_uninstall, :post_uninstall,
                 :s3_bucket, :files
-  dsl_class_attribute :docker, Slugger::Docker
-  dsl_class_attribute :foreman, Slugger::Foreman
+  dsl_class_attribute :docker, Dockly::Docker
+  dsl_class_attribute :foreman, Dockly::Foreman
 
   default_value :version, '0.0'
   default_value :release, '0'
@@ -50,7 +50,7 @@ class Slugger::Deb
 
   def exists?
     debug "#{name}: checking for package: #{s3_url}"
-    Slugger::AWS.s3.head_object(s3_bucket, s3_object_name)
+    Dockly::AWS.s3.head_object(s3_bucket, s3_object_name)
     info "#{name}: found package: #{s3_url}"
     true
   rescue
@@ -63,8 +63,8 @@ class Slugger::Deb
     return if s3_bucket.nil?
     create_package! unless File.exist?(build_path)
     info "uploading package to s3"
-    Slugger::AWS.s3.put_bucket(s3_bucket) rescue nil
-    Slugger::AWS.s3.put_object(s3_bucket, s3_object_name, File.new(build_path))
+    Dockly::AWS.s3.put_bucket(s3_bucket) rescue nil
+    Dockly::AWS.s3.put_object(s3_bucket, s3_object_name, File.new(build_path))
   end
 
   def s3_url
@@ -72,7 +72,7 @@ class Slugger::Deb
   end
 
   def s3_object_name
-    "#{package_name}/#{Slugger::Util.git_sha}/#{output_filename}"
+    "#{package_name}/#{Dockly::Util::Git.git_sha}/#{output_filename}"
   end
 
   def output_filename

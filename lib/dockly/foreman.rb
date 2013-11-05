@@ -1,8 +1,8 @@
-class Slugger::Foreman
-  include DSL::DSL
-  include DSL::Logger::Mixin
+class Dockly::Foreman
+  include Dockly::Util::DSL
+  include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger foreman]'
+  logger_prefix '[dockly foreman]'
   dsl_attribute :name, :env, :procfile, :type, :user, :root_dir, :init_dir,
                 :log_dir, :build_dir, :prefix
 

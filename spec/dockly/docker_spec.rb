@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Slugger::Docker do
+describe Dockly::Docker do
   subject { described_class.new(:name => :test_docker) }
 
   describe '#ensure_tar' do
@@ -58,7 +58,7 @@ describe Slugger::Docker do
         Gem::Package::TarReader.new(File.new(subject.git_archive_path, 'r')).each do |entry|
           names << entry.header.name
         end
-        names.should include('/dev/random/slugger.gemspec')
+        names.should include('/dev/random/dockly.gemspec')
       end
     end
   end
@@ -93,7 +93,7 @@ describe Slugger::Docker do
 
       # it 'exports'
       subject.export_image(image)
-      File.exist?('build/docker/slugger-my-app-image.tgz').should be_true
+      File.exist?('build/docker/dockly-my-app-image.tgz').should be_true
     end
   end
 
@@ -149,7 +149,7 @@ describe Slugger::Docker do
   end
 
   describe '#generate!', :docker do
-    let(:docker_file) { 'build/docker/slugger_test-generate-image.tgz' }
+    let(:docker_file) { 'build/docker/dockly_test-generate-image.tgz' }
     before { FileUtils.rm_rf(docker_file) }
 
     context 'without cleaning up' do
@@ -158,7 +158,7 @@ describe Slugger::Docker do
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build "run touch /it_worked"
-          repo 'slugger_test'
+          repo 'dockly_test'
           tag 'generate'
           build_dir 'build/docker'
           cleanup_images false
@@ -168,7 +168,7 @@ describe Slugger::Docker do
         expect {
           subject.generate!
           File.exist?(docker_file).should be_true
-          Slugger::Util.is_gzip?(docker_file).should be_true
+          Dockly::Util::Tar.is_gzip?(docker_file).should be_true
           File.size(docker_file).should be > (1024 * 1024)
           paths = []
           Gem::Package::TarReader.new(gz = Zlib::GzipReader.new(File.new(docker_file))).each do |entry|
@@ -176,7 +176,7 @@ describe Slugger::Docker do
           end
           paths.size.should be > 1000
           paths.should include('./sbin/init')
-          paths.should include('./lib/slugger.rb')
+          paths.should include('./lib/dockly.rb')
           paths.should include('./it_worked')
         }.to change { ::Docker::Image.all(:all => true).length }.by(3)
       end
@@ -188,7 +188,7 @@ describe Slugger::Docker do
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build "run touch /it_worked"
-          repo 'slugger_test'
+          repo 'dockly_test'
           tag 'generate'
           build_dir 'build/docker'
           cleanup_images true
@@ -198,7 +198,7 @@ describe Slugger::Docker do
         expect {
           subject.generate!
           File.exist?(docker_file).should be_true
-          Slugger::Util.is_gzip?(docker_file).should be_true
+          Dockly::Util::Tar.is_gzip?(docker_file).should be_true
           File.size(docker_file).should be > (1024 * 1024)
           paths = []
           Gem::Package::TarReader.new(gz = Zlib::GzipReader.new(File.new(docker_file))).each do |entry|
@@ -206,7 +206,7 @@ describe Slugger::Docker do
           end
           paths.size.should be > 1000
           paths.should include('./sbin/init')
-          paths.should include('./lib/slugger.rb')
+          paths.should include('./lib/dockly.rb')
           paths.should include('./it_worked')
         }.to change { ::Docker::Image.all(:all => true).length }.by(0)
       end

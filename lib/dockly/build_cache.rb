@@ -1,10 +1,10 @@
 require 'tempfile'
 
-class Slugger::BuildCache
-  include DSL::DSL
-  include DSL::Logger::Mixin
+class Dockly::BuildCache
+  include Dockly::Util::DSL
+  include Dockly::Util::Logger::Mixin
 
-  logger_prefix '[slugger build_cache]'
+  logger_prefix '[dockly build_cache]'
 
   attr_accessor :image
   dsl_attribute :s3_bucket, :s3_object_prefix, :hash_command, :output_dir, :build_command,
@@ -126,6 +126,6 @@ class Slugger::BuildCache
   end
 
   def connection
-    Slugger::AWS.s3
+    Dockly::AWS.s3
   end
 end
