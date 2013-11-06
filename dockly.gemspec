@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'docker-api', '~> 1.5.2'
   gem.add_dependency 'dockly-util'
   gem.add_dependency 'excon'
-  gem.add_dependency 'fog', '~> 1.14.0'
+  gem.add_dependency 'fog', '~> 1.18.0'
   gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 0.4.42'
   gem.add_dependency 'grit'
