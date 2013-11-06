@@ -1,7 +1,7 @@
-Slugger
+Dockly
 =======
 
-`Slugger` is a gem made to ease the pain of packaging an application. For this gem to be useful, quite a few assumptions can be made about your stack:
+`dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, quite a few assumptions can be made about your stack:
 
 - You use AWS
 - You're deploying to a Debian-based system
@@ -70,7 +70,7 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - description: aditional Dockerfile commands that you'd like to pass to `docker build`
 - `repo`
     - required: `true`
-    - default: `'slugger'`
+    - default: `'dockly'`
     - description: the repository of the created image
 - `tag`
     - required: `true`
@@ -95,7 +95,7 @@ The `docker` DSL is used to define Docker containers. It has the following attri
 
 `foreman`
 ---------
-    
+
 The `foreman` DSL is used to define the foreman export scripts. It has the following attributes:
 
 - `env`
@@ -165,12 +165,12 @@ In addition to the above attributes, `deb` has the following references:
 - `docker`
     - required: `false`
     - default: `nil`
-    - class: `Slugger::Docker`
+    - class: `Dockly::Docker`
     - description: configuration for an image packaged with the deb
 - `foreman`
     - required: `false`
     - default: `nil`
-    - class: `Slugger::Foreman`
+    - class: `Dockly::Foreman`
     - description: any Foreman scripts used in the deb
 
 
@@ -178,20 +178,20 @@ Demo
 ===
 
 ```ruby
-deb :slugger_package do
-  package_name 'slugger_package'
+deb :dockly_package do
+  package_name 'dockly_package'
   version '1.0'
   release '1'
 
   docker do
-    name :slugger_docker
-    tag 'slugger_docker'
-    import 's3://slugger-bucket-name/base-image.tar.gz'
+    name :dockly_docker
+    tag 'dockly_docker'
+    import 's3://dockly-bucket-name/base-image.tar.gz'
     git_archive '/app'
     timeout 120
 
     build_cache do
-      s3_bucket "slugger-bucket-name"
+      s3_bucket "dockly-bucket-name"
       s3_object_prefix "bundle_cache/"
       hash_command "cd /app && ./script/bundle_hash"
       build_command "cd /app && ./script/bundle_package"
@@ -200,24 +200,20 @@ deb :slugger_package do
     end
 
     build <<-EOF
-      run cd /app && echo "1.0-1" > VERSION && echo "#{Slugger.git_sha}" >> VERSION
+      run cd /app && echo "1.0-1" > VERSION && echo "#{Dockly.git_sha}" >> VERSION
     EOF
-    # git_sha is available from Slugger
+    # git_sha is available from Dockly
   end
 
   foreman do
-    name 'slugger'
+    name 'dockly'
     procfile 'Procfile'
-    prefix 'source /etc/slugger_env '
+    prefix 'source /etc/dockly_env '
     log_dir '/data/logs'
     user 'ubuntu'
   end
 
-  post_install <<-EOF
-    zcat /opt/docker/#{build_path} | docker import - swipely latest
-  EOF
-
-  s3_bucket 'slugger-bucket-name'
+  s3_bucket 'dockly-bucket-name'
   # ends up in s3://#{s3_bucket}/#{package_name}/#{git_hash}/#{package_name}_#{version}.#{release}_#{arch}.deb
 end
 ```

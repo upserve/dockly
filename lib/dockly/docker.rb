@@ -132,7 +132,7 @@ class Dockly::Docker
 
   def fetch_import
     ensure_present! :tag, :import
-    path = "/tmp/deployz-docker-import.#{name}.#{File.basename(import)}"
+    path = "/tmp/dockly-docker-import.#{name}.#{File.basename(import)}"
 
     if File.exist?(path)
       debug "already fetched #{import}"

@@ -16,7 +16,7 @@ require 'dockly/util/tar'
 require 'dockly/util/git'
 
 module Dockly
-  def setup(file = 'slugger.rb')
+  def setup(file = 'dockly.rb')
     git_sha rescue 'unknown'
     Dockly::Deb.instances
     Dockly::Docker.instances

@@ -31,7 +31,7 @@ namespace :dockly do
 
   namespace :deb do
     Dockly::Deb.instances.values.each do |inst|
-      deb inst.name => 'deployz:load' do |name|
+      deb inst.name => 'dockly:load' do |name|
         Thread.current[:rake_task] = name
         inst.build
       end
