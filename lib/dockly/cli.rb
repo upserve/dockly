@@ -7,7 +7,7 @@ class Dockly::AbstractCommand < Clamp::Command
 
   def execute
     if File.exist?(file)
-      Dockly.setup(file)
+      Dockly.load_file = file
     else
       raise 'Could not find a dockly file!'
     end
@@ -20,7 +20,7 @@ class Dockly::BuildCommand < Dockly::AbstractCommand
 
   def execute
     super
-    if package = Dockly::Deb.instances[package_name.to_sym]
+    if package = Dockly.debs[package_name.to_sym]
       if force? || !package.exists?
         package.build
       else
@@ -33,7 +33,7 @@ end
 class Dockly::ListCommand < Dockly::AbstractCommand
   def execute
     super
-    Dockly::Deb.instances.each_with_index do |(name, package), index|
+    Dockly.debs.each_with_index do |(name, package), index|
       puts "#{index + 1}. #{name}"
     end
   end

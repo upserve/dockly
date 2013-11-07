@@ -3,10 +3,6 @@ require 'dockly'
 
 $rake_task_logger = Dockly::Util::Logger.new('[dockly rake_task]', STDOUT, false)
 
-if File.exist?('dockly.rb')
-  Dockly.setup
-end
-
 class Rake::DebTask < Rake::Task
   def needed?
     raise "Package does not exist" if package.nil?
@@ -30,7 +26,7 @@ namespace :dockly do
   end
 
   namespace :deb do
-    Dockly::Deb.instances.values.each do |inst|
+    Dockly.debs.values.each do |inst|
       deb inst.name => 'dockly:load' do |name|
         Thread.current[:rake_task] = name
         inst.build
