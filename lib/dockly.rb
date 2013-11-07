@@ -16,12 +16,33 @@ require 'dockly/util/tar'
 require 'dockly/util/git'
 
 module Dockly
-  def setup(file = 'dockly.rb')
-    git_sha rescue 'unknown'
-    Dockly::Deb.instances
-    Dockly::Docker.instances
-    Dockly::Foreman.instances
-    instance_eval(IO.read(file), file)
+  attr_reader :instance, :git_sha
+  attr_writer :load_file
+
+  LOAD_FILE = 'dockly.rb'
+
+  def load_file
+    @load_file || LOAD_FILE
+  end
+
+  def inst
+    @instance ||= load_inst
+  end
+
+  def load_inst
+    setup.tap do |state|
+      if File.exists?(load_file)
+        instance_eval(IO.read(load_file), load_file)
+      end
+    end
+  end
+
+  def setup
+    {
+      :debs => Dockly::Deb.instances,
+      :dockers => Dockly::Docker.instances,
+      :foremans => Dockly::Foreman.instances
+    }
   end
 
   {
@@ -30,7 +51,17 @@ module Dockly
     :foreman => Dockly::Foreman
   }.each do |method, klass|
     define_method(method) do |sym, &block|
-      klass.new!(:name => sym, &block)
+      if block.nil?
+        inst[:"#{method}s"][sym]
+      else
+        klass.new!(:name => sym, &block)
+      end
+    end
+  end
+
+  [:debs, :dockers, :foremans].each do |method|
+    define_method(method) do
+      inst[method]
     end
   end
 
@@ -38,7 +69,9 @@ module Dockly
     @git_sha ||= Dockly::Util::Git.git_sha
   end
 
-  module_function :setup, :deb, :docker, :foreman, :git_sha
+  module_function :inst, :load_inst, :setup, :load_file, :load_file=,
+                  :deb,  :docker,  :foreman, :git_sha,
+                  :debs, :dockers, :foremans
 end
 
 require 'dockly/rake_task'
