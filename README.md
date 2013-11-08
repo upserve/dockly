@@ -1,3 +1,7 @@
+[![Gem Version](https://badge.fury.io/rb/dockly.png)](http://badge.fury.io/rb/dockly)
+[![Build Status](https://travis-ci.org/swipely/dockly.png?branch=refactor_setup)](https://travis-ci.org/swipely/dockly)
+[![Dependency Status](https://gemnasium.com/swipely/dockly.png)](https://gemnasium.com/swipely/dockly)
+
 Dockly
 =======
 
@@ -51,6 +55,35 @@ deb :my_deb do
 end
 ```
 
+`build_cache`
+-------------
+
+The `build_cache` DSL is used to prevent rebuilding assets every build and used cached assets.
+
+- `s3_bucket`
+    - required: `true`
+    - description: the bucket name to download and upload build caches to
+- `s3_object_prefix`
+    - required: `true`
+    - description: the name prepended to the package; allows for namespacing your caches
+- `hash_command`
+    - required: `true`
+    - description: command run inside of the Docker image to determine if the build cache is up to date (eg. `md5sum ... | awk '{ print $1 }'`)
+- `build_command`
+    - required: `true`
+    - description: command run inside of the Docker image when the build cache is out of date
+- `output_dir`
+    - required: `true`
+    - description: where the cache is located in the Docker image filesystem
+- `tmp_dir`
+    - required: `true`
+    - default: `/tmp`
+    - description: where the build cache files are stored locally; this should be able to be removed easily since they all exist in S3 as well
+- `use_latest`
+    - required: `false`
+    - default: `false`
+    - description: when using S3, will insert the S3 object tagged as latest in your "s3://s3_bucket/s3_object_prefix" before running the build command to quicken build times
+
 `docker`
 --------
 
@@ -58,7 +91,6 @@ The `docker` DSL is used to define Docker containers. It has the following attri
 
 - `import`
     - required: `true`
-    - default: `nil`
     - description: the location (url or S3 path) of the base image to start building from
 - `git_archive`:
     - required: `false`
@@ -66,7 +98,6 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - description: the relative file path of git repo that should be added to the container
 - `build`
     - required: `true`
-    - default: `nil`
     - description: aditional Dockerfile commands that you'd like to pass to `docker build`
 - `repository`
     - required: `true`
@@ -76,7 +107,6 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - alias for: `repository`
 - `tag`
     - required: `true`
-    - default: `nil`
     - description: the tag of the created image
 - `build_dir`
     - required: `true`
@@ -94,6 +124,13 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - required: `false`
     - default: `[]`
     - description: a listing of references to build caches to run
+
+In addition to the above attributes, `docker` has the following references:
+
+- `build_cache`
+    - required: `false`
+    - class: `Dockly::BuildCache`
+    - description: a caching system to stop rebuilding/compiling the same files every time
 
 `foreman`
 ---------
@@ -135,7 +172,6 @@ The `deb` DSL is used to define Debian packages. It has the following attributes
 
 - `package_name`
     - required: `true`
-    - default: `nil`
     - description: the name of the created package
 - `version`
     - required: `true`
