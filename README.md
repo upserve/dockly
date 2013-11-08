@@ -82,7 +82,7 @@ The `build_cache` DSL is used to prevent rebuilding assets every build and used 
 - `use_latest`
     - required: `false`
     - default: `false`
-    - description: when using S3, will insert the S3 object tagged as latest in your "s3://s3_bucket/s3_object_prefix" before running the build command
+    - description: when using S3, will insert the S3 object tagged as latest in your "s3://s3_bucket/s3_object_prefix" before running the build command to quicken build times
 
 `docker`
 --------
