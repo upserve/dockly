@@ -10,10 +10,11 @@ class Dockly::Docker
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[dockly docker]'
-  dsl_attribute :import, :git_archive, :build, :repo, :tag, :build_dir, :package_dir,
+  dsl_attribute :name, :import, :git_archive, :build, :repo, :tag, :build_dir, :package_dir,
     :timeout, :cleanup_images, :build_caches
 
   default_value :repo, 'dockly'
+  default_value :tag, nil
   default_value :build_dir, 'build/docker'
   default_value :package_dir, '/opt/docker'
   default_value :build_caches, []
@@ -38,7 +39,7 @@ class Dockly::Docker
   end
 
   def export_filename
-    "#{repo}-#{tag}-image.tgz"
+    "#{repo}-#{name}-image.tgz"
   end
 
   def run_build_caches(image)
@@ -66,7 +67,7 @@ class Dockly::Docker
   end
 
   def make_git_archive
-    ensure_present! :tag, :git_archive
+    ensure_present! :git_archive
     info "initializing"
 
     prefix = git_archive
@@ -110,7 +111,7 @@ class Dockly::Docker
   end
 
   def build_image(image)
-    ensure_present! :repo, :tag, :build
+    ensure_present! :repo, :build
     info "starting build from #{image.id}"
     out_image = ::Docker::Image.build("from #{image.id}\n#{build}")
     info "built the image: #{out_image.id}"
@@ -119,7 +120,7 @@ class Dockly::Docker
   end
 
   def export_image(image)
-    ensure_present! :repo, :tag, :build_dir
+    ensure_present! :name, :repo, :build_dir
     container = ::Docker::Container.create('Image' => image.id, 'Cmd' => %w[true])
     info "created the container: #{container.id}"
     Zlib::GzipWriter.open(tar_path) do |file|
@@ -131,7 +132,7 @@ class Dockly::Docker
   end
 
   def fetch_import
-    ensure_present! :tag, :import
+    ensure_present! :import
     path = "/tmp/dockly-docker-import.#{name}.#{File.basename(import)}"
 
     if File.exist?(path)

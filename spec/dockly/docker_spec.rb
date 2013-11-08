@@ -155,11 +155,11 @@ describe Dockly::Docker do
     context 'without cleaning up' do
       before do
         subject.instance_eval do
+          name 'generate'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build "run touch /it_worked"
           repo 'dockly_test'
-          tag 'generate'
           build_dir 'build/docker'
           cleanup_images false
         end
@@ -185,11 +185,11 @@ describe Dockly::Docker do
     context 'with cleaning up' do
       before do
         subject.instance_eval do
+          name 'generate'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build "run touch /it_worked"
           repo 'dockly_test'
-          tag 'generate'
           build_dir 'build/docker'
           cleanup_images true
         end
