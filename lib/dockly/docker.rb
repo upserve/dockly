@@ -10,10 +10,9 @@ class Dockly::Docker
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[dockly docker]'
-  dsl_attribute :name, :import, :git_archive, :build, :repo, :tag, :build_dir, :package_dir,
+  dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
     :timeout, :cleanup_images, :build_caches
 
-  default_value :repo, 'dockly'
   default_value :tag, nil
   default_value :build_dir, 'build/docker'
   default_value :package_dir, '/opt/docker'
@@ -39,7 +38,7 @@ class Dockly::Docker
   end
 
   def export_filename
-    "#{repo}-#{name}-image.tgz"
+    "#{name}-image.tgz"
   end
 
   def run_build_caches(image)
@@ -111,16 +110,16 @@ class Dockly::Docker
   end
 
   def build_image(image)
-    ensure_present! :repo, :build
+    ensure_present! :name, :build
     info "starting build from #{image.id}"
     out_image = ::Docker::Image.build("from #{image.id}\n#{build}")
     info "built the image: #{out_image.id}"
-    out_image.tag(:repo => repo, :tag => tag)
+    out_image.tag(:repo => name, :tag => tag)
     out_image
   end
 
   def export_image(image)
-    ensure_present! :name, :repo, :build_dir
+    ensure_present! :name, :build_dir
     container = ::Docker::Container.create('Image' => image.id, 'Cmd' => %w[true])
     info "created the container: #{container.id}"
     Zlib::GzipWriter.open(tar_path) do |file|
@@ -161,6 +160,10 @@ class Dockly::Docker
 
   def build_cache(&block)
     build_caches << Dockly::BuildCache.new(&block)
+  end
+
+  def repository(value = nil)
+    name(value)
   end
 
 private
