@@ -149,7 +149,7 @@ describe Dockly::Docker do
   end
 
   describe '#generate!', :docker do
-    let(:docker_file) { 'build/docker/dockly_test-generate-image.tgz' }
+    let(:docker_file) { 'build/docker/dockly_test-image.tgz' }
     before { FileUtils.rm_rf(docker_file) }
 
     context 'without cleaning up' do
@@ -158,8 +158,7 @@ describe Dockly::Docker do
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build "run touch /it_worked"
-          repo 'dockly_test'
-          tag 'generate'
+          repository 'dockly_test'
           build_dir 'build/docker'
           cleanup_images false
         end
@@ -188,8 +187,7 @@ describe Dockly::Docker do
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build "run touch /it_worked"
-          repo 'dockly_test'
-          tag 'generate'
+          repository 'dockly_test'
           build_dir 'build/docker'
           cleanup_images true
         end

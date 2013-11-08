@@ -48,11 +48,10 @@ describe Dockly::Deb do
     context 'when it has a docker', :docker do
       before do
         subject.docker do
-          name 'my-docker-for-deb'
+          name 'deb_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
           build 'touch /deb_worked'
-          tag 'deb_test'
           build_dir 'build/docker'
         end
       end
