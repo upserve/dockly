@@ -21,11 +21,11 @@ docker :test_docker do
 end
 ```
 
-Each object has an enumeration of valid attributes. The following code sets the `repo` attribute in a `docker` called `test_docker`:
+Each object has an enumeration of valid attributes. The following code sets the `repository` attribute in a `docker` called `test_docker`:
 
 ```ruby
 docker :test_docker do
-  repo 'an-awesome-repo'
+  repository 'an-awesome-name'
 end
 ```
 
@@ -33,7 +33,7 @@ Finally, each object has zero or more valid references to other DSL objects. The
 
 ```ruby
 docker :my_docker do
-  repo 'my-repo'
+  repository 'my-name'
 end
 
 deb :my_deb do
@@ -46,7 +46,7 @@ Below is an alternative syntax that accomplishes the same thing:
 ```ruby
 deb :my_deb do
   docker do
-    repo 'my-repo'
+    repository 'my-name'
   end
 end
 ```
@@ -68,10 +68,12 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - required: `true`
     - default: `nil`
     - description: aditional Dockerfile commands that you'd like to pass to `docker build`
-- `repo`
+- `repository`
     - required: `true`
     - default: `'dockly'`
     - description: the repository of the created image
+- `name`
+    - alias for: `repository`
 - `tag`
     - required: `true`
     - default: `nil`
@@ -185,7 +187,6 @@ deb :dockly_package do
 
   docker do
     name :dockly_docker
-    tag 'dockly_docker'
     import 's3://dockly-bucket-name/base-image.tar.gz'
     git_archive '/app'
     timeout 120
