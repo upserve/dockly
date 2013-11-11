@@ -132,6 +132,8 @@ In addition to the above attributes, `docker` has the following references:
     - class: `Dockly::BuildCache`
     - description: a caching system to stop rebuilding/compiling the same files every time
 
+Need finer control of Docker packages? We also wrote [docker-api](https://github.com/swipely/docker-api).
+
 `foreman`
 ---------
 
@@ -197,6 +199,9 @@ The `deb` DSL is used to define Debian packages. It has the following attributes
     - required: `false`
     - default: `nil`
     - description: the s3 bucket the package is uploaded to
+- `file SOURCE DEST`
+    - required: `false`
+    - description: places SOURCE at DEST in the Debian package (can have multiple of these)
 
 In addition to the above attributes, `deb` has the following references:
 
@@ -211,19 +216,16 @@ In addition to the above attributes, `deb` has the following references:
     - class: `Dockly::Foreman`
     - description: any Foreman scripts used in the deb
 
-
 Demo
 ===
 
 ```ruby
 deb :dockly_package do
   package_name 'dockly_package'
-  version '1.0'
-  release '1'
 
   docker do
     name :dockly_docker
-    import 's3://dockly-bucket-name/base-image.tar.gz'
+    import 's3://.../base-image.tar.gz'
     git_archive '/app'
     timeout 120
 
@@ -237,17 +239,14 @@ deb :dockly_package do
     end
 
     build <<-EOF
-      run cd /app && echo "1.0-1" > VERSION && echo "#{Dockly.git_sha}" >> VERSION
+      run cd /app && ./configure && make
     EOF
-    # git_sha is available from Dockly
   end
 
   foreman do
     name 'dockly'
     procfile 'Procfile'
-    prefix 'source /etc/dockly_env '
     log_dir '/data/logs'
-    user 'ubuntu'
   end
 
   s3_bucket 'dockly-bucket-name'
