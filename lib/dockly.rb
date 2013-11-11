@@ -1,6 +1,5 @@
 require 'dockly/util'
 require 'fog'
-require 'pry'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 

@@ -92,10 +92,10 @@ private
     debug "converting to deb"
     @deb_package = @dir_package.convert(FPM::Package::Deb)
 
-    @deb_package.scripts[:prein] = pre_install
-    @deb_package.scripts[:postin] = post_install
-    @deb_package.scripts[:preun] = pre_uninstall
-    @deb_package.scripts[:postun] = post_uninstall
+    @deb_package.scripts[:before_install] = pre_install
+    @deb_package.scripts[:after_install] = post_install
+    @deb_package.scripts[:before_remove] = pre_uninstall
+    @deb_package.scripts[:after_remove] = post_uninstall
 
     @deb_package.name = package_name
     @deb_package.version = version
