@@ -15,6 +15,7 @@ class Dockly::BuildCache
 
   def execute!
     ensure_present! :image
+    debug "Looking for cache for hash: #{hash_output}"
     if up_to_date?
       debug "build cache up to date, pulling from s3"
       insert_cache
@@ -42,7 +43,7 @@ class Dockly::BuildCache
   end
 
   def run_build
-    container = image.run(build_command).tap(&:start)
+    container = image.run(build_command)
     cache = copy_output_dir(container)
     debug "pushing #{output_dir} to s3"
     push_to_s3(cache)
@@ -112,7 +113,7 @@ class Dockly::BuildCache
     ensure_present! :image, :hash_command
     @hash_output ||= begin
       resp = ""
-      image.run(hash_command).start.attach { |chunk| resp += chunk }
+      image.run(hash_command).attach { |chunk| resp += chunk }
       resp.strip
     end
   end
