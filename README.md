@@ -7,7 +7,6 @@ Dockly
 
 `dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, quite a few assumptions can be made about your stack:
 
-- You use AWS
 - You're deploying to a Debian-based system
 - You want to use [Docker](http://docker.io) for process isolation
 
@@ -57,6 +56,8 @@ end
 
 `build_cache`
 -------------
+
+Optional
 
 The `build_cache` DSL is used to prevent rebuilding assets every build and used cached assets.
 
@@ -136,6 +137,8 @@ Need finer control of Docker packages? We also wrote [docker-api](https://github
 
 `foreman`
 ---------
+
+Optional
 
 The `foreman` DSL is used to define the foreman export scripts. It has the following attributes:
 
