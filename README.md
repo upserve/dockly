@@ -12,6 +12,11 @@ Dockly
 
 Although only a specific type of repository may be used, these assumptions allow us to define a simple DSL to describe your repository.
 
+Usage
+-----
+
+Once a `deb` block has been defined by the DSL below, dockly is invoked by either `bundle exec dockly build #{deb block name}` or `bundle exec rake dockly:deb:#{deb block name}`.
+
 The DSL
 -------
 
