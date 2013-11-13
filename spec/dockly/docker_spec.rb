@@ -85,7 +85,6 @@ describe Dockly::Docker do
       image = subject.build_image(image)
       container = Docker::Container.create('Image' => image.id, 'Cmd' => ['ls', '-1', '/'])
       output = container.tap(&:start).attach(:stream => true, :stdout => true, :stderr => true)
-      puts "output: #{output}"
       output.lines.grep(/lol/).should_not be_empty
       # TODO: stop resetting the connection, once no longer necessary after attach
       Docker.reset_connection!
@@ -93,7 +92,7 @@ describe Dockly::Docker do
 
       # it 'exports'
       subject.export_image(image)
-      File.exist?('build/docker/dockly-my-app-image.tgz').should be_true
+      File.exist?('build/docker/test_docker-image.tgz').should be_true
     end
   end
 
