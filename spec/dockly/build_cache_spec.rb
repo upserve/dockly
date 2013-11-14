@@ -8,7 +8,7 @@ describe Dockly::BuildCache, :docker do
     subject.s3_bucket 'lol'
     subject.s3_object_prefix 'swag'
     subject.image = image
-    subject.hash_command 'md6' # haters come at me
+    subject.hash_command 'md5sum'
     subject.build_command 'touch lol'
     subject.output_dir '/'
   end
