@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = %w{lib}
   gem.version       = Dockly::VERSION
   gem.add_dependency 'clamp', '~> 0.6'
-  gem.add_dependency 'docker-api', '~> 1.5.2'
+  gem.add_dependency 'docker-api', '~> 1.6.0'
   gem.add_dependency 'dockly-util', '~> 0.0.5'
   gem.add_dependency 'excon'
   gem.add_dependency 'fog', '~> 1.18.0'

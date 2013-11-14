@@ -59,7 +59,7 @@ describe Dockly::Deb do
       it 'builds the docker image and adds it to the deb' do
         subject.create_package!
         `dpkg --contents #{filename}`
-            .lines.grep(/dockly-deb_test-image\.tgz/).should_not be_empty
+            .lines.grep(/deb_test-image\.tgz/).should_not be_empty
       end
     end
 
