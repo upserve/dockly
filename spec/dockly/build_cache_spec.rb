@@ -49,11 +49,30 @@ describe Dockly::BuildCache, :docker do
       subject.stub(:push_to_s3)
     end
 
-    it "does have the file lol" do
-      i = subject.execute!
-      output = ""
-      i.run('ls').attach { |chunk| output += chunk }
-      output.should include('lol')
+    context "when the build succeeds" do
+      it "does have the file lol" do
+        i = subject.run_build
+        output = ""
+        i.run('ls').attach { |chunk| output += chunk }
+        output.should include('lol')
+      end
+    end
+
+    context "when the build fails" do
+      let!(:image) { subject.image }
+      before do
+        subject.image = double(:image).stub(:run) {
+          stub(:container, { :wait => { 'StatusCode' => 1 } })
+        }
+      end
+
+      after do
+        subject.image = image
+      end
+
+      it "raises an error" do
+        expect { subject.run_build }.to raise_error
+      end
     end
   end
 
