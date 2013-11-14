@@ -55,7 +55,9 @@ class Dockly::BuildCache
     ensure_present! :output_dir
     if cache = pull_from_s3(version)
       debug "inserting to #{output_dir}"
-      self.image = image.insert_local(
+      container = image.run("mkdir #{File.dirname(output_dir)}")
+      image_with_dir = container.tap { |c| c.wait }.commit
+      self.image = image_with_dir.insert_local(
         'localPath' => cache.path,
         'outputPath' => File.dirname(output_dir)
       )
