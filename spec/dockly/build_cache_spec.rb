@@ -77,8 +77,8 @@ describe Dockly::BuildCache, :docker do
   end
 
   describe '#pull_from_s3' do
-    let (:file) { subject.pull_from_s3('hey') }
-    let (:object) { double(:object) }
+    let(:file) { subject.pull_from_s3('hey') }
+    let(:object) { double(:object) }
 
     before do
       subject.connection.stub(:get_object).and_return object
