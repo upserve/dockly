@@ -44,7 +44,7 @@ class Dockly::BuildCache
 
   def run_build
     container = image.run(build_command)
-    status = container.wait(3600)['StatusCode']
+    status = container.wait(3600)['StatusCode'] # 1 hour max timeout
     raise "Build Cache `#{build_command}` failed to run." unless status.zero?
     cache = copy_output_dir(container)
     debug "pushing #{output_dir} to s3"

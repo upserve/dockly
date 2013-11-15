@@ -26,7 +26,7 @@ describe Dockly::BuildCache, :docker do
       it "does not have the file lol" do
         i = subject.execute!
         output = ""
-        i.run('ls').attach { |chunk| output += chunk; puts chunk }
+        i.run('ls').attach { |chunk| output += chunk }
         output.should_not include('lol')
       end
     end
