@@ -8,7 +8,7 @@ describe Dockly::BuildCache, :docker do
     subject.s3_bucket 'lol'
     subject.s3_object_prefix 'swag'
     subject.image = image
-    subject.hash_command 'md5sum'
+    subject.hash_command 'md5sum /etc/vim/vimrc'
     subject.build_command 'touch lol'
     subject.output_dir '/'
   end
@@ -26,8 +26,7 @@ describe Dockly::BuildCache, :docker do
       it "does not have the file lol" do
         i = subject.execute!
         output = ""
-        puts i
-        i.run('ls').start.attach { |chunk| output += chunk }
+        i.run('ls').attach { |chunk| output += chunk; puts chunk }
         output.should_not include('lol')
       end
     end
@@ -118,13 +117,26 @@ describe Dockly::BuildCache, :docker do
       "682aa2a07693cc27756eee9751db3903  /etc/vim/vimrc"
     }
 
-    before do
-      subject.image = image
-      subject.hash_command 'md5sum /etc/vim/vimrc'
+    context "when hash command returns successfully" do
+      before do
+        subject.image = image
+      end
+
+      it 'returns the output of the hash_command in the container' do
+        subject.hash_output.should == output
+      end
     end
 
-    it 'returns the output of the hash_command in the container' do
-      subject.hash_output.should == output
+    context "when hash command returns failure" do
+      before do
+        subject.image = double(:image).stub(:run, {
+          :wait => { 'StatusCode' => 1 }
+        })
+      end
+
+      it 'raises an error' do
+        expect { subject.hash_output }.to raise_error
+      end
     end
   end
 
