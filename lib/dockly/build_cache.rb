@@ -44,6 +44,8 @@ class Dockly::BuildCache
 
   def run_build
     container = image.run(build_command)
+    status = container.wait(3600)['StatusCode'] # 1 hour max timeout
+    raise "Build Cache `#{build_command}` failed to run." unless status.zero?
     cache = copy_output_dir(container)
     debug "pushing #{output_dir} to s3"
     push_to_s3(cache)
@@ -55,7 +57,9 @@ class Dockly::BuildCache
     ensure_present! :output_dir
     if cache = pull_from_s3(version)
       debug "inserting to #{output_dir}"
-      self.image = image.insert_local(
+      container = image.run("mkdir #{File.dirname(output_dir)}")
+      image_with_dir = container.tap { |c| c.wait }.commit
+      self.image = image_with_dir.insert_local(
         'localPath' => cache.path,
         'outputPath' => File.dirname(output_dir)
       )
@@ -113,7 +117,10 @@ class Dockly::BuildCache
     ensure_present! :image, :hash_command
     @hash_output ||= begin
       resp = ""
-      image.run(hash_command).attach { |chunk| resp += chunk }
+      container = image.run(hash_command)
+      container.attach { |chunk| resp += chunk }
+      status = container.wait['StatusCode']
+      raise "Hash Command `#{hash_command} failed to run" unless status.zero?
       resp.strip
     end
   end
