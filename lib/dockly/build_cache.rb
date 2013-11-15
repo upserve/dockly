@@ -118,7 +118,7 @@ class Dockly::BuildCache
     @hash_output ||= begin
       resp = ""
       container = image.run(hash_command)
-      container.attach { |chunk| resp += chunk }
+      container.attach { |source,chunk| resp += chunk }
       status = container.wait['StatusCode']
       raise "Hash Command `#{hash_command} failed to run" unless status.zero?
       resp.strip

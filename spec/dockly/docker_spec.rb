@@ -84,8 +84,8 @@ describe Dockly::Docker do
       subject.build "run touch /lol"
       image = subject.build_image(image)
       container = Docker::Container.create('Image' => image.id, 'Cmd' => ['ls', '-1', '/'])
-      output = container.tap(&:start).attach(:stream => true, :stdout => true, :stderr => true)
-      output.lines.grep(/lol/).should_not be_empty
+      output = container.tap(&:start).attach
+      output[0].grep(/lol/).should_not be_empty
       # TODO: stop resetting the connection, once no longer necessary after attach
       Docker.reset_connection!
       subject.instance_variable_set(:@connection, Docker.connection)
