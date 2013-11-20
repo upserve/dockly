@@ -10,8 +10,8 @@ class Dockly::BuildCache::Base
                 :use_latest, :base_dir, :command_dir, :output_dir, :tmp_dir
 
   default_value :use_latest, false
-  default_value :command_dir, '/'
-  default_value :output_dir, '/'
+  default_value :command_dir, '.'
+  default_value :output_dir, '.'
   default_value :tmp_dir, '/tmp'
 
   def execute!

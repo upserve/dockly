@@ -2,6 +2,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   attr_accessor :image
 
   def execute!
+    ensure_present! :image
     super
     image
   end
