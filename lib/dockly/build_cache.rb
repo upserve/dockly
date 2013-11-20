@@ -3,6 +3,7 @@ end
 
 require 'dockly/build_cache/base'
 require 'dockly/build_cache/docker'
+require 'dockly/build_cache/local'
 
 module Dockly::BuildCache
   class << self
