@@ -34,8 +34,8 @@ module Dockly::Util::Tar
   #
   # Returns a StringIO whose underlying String
   # is the contents of the tar file.
-  def tar(path)
-    tarfile = StringIO.new("")
+  def tar(path, output)
+    tarfile = File.open(output, 'wb')
     Gem::Package::TarWriter.new(tarfile) do |tar|
       Dir[File.join(path, "**/*")].each do |file|
         mode = File.stat(file).mode
@@ -45,7 +45,11 @@ module Dockly::Util::Tar
           tar.mkdir relative_file, mode
         else
           tar.add_file relative_file, mode do |tf|
-            File.open(file, "rb") { |f| tf.write f.read }
+            begin
+              File.open(file, "rb") { |f| tf.write f.read }
+            rescue => ex
+              binding.pry
+            end
           end
         end
       end
