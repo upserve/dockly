@@ -15,7 +15,7 @@ describe Dockly::BuildCache::Docker, :docker do
     build_cache.image = image
     build_cache.hash_command 'md5sum /etc/vim/vimrc'
     build_cache.build_command 'touch lol'
-    build_cache.output_dir '/'
+    build_cache.output_dir '/etc/vim'
     build_cache.base_dir '/'
     docker.build_cache :test_build_cache
   end
