@@ -1,5 +1,3 @@
-require 'rubygems'
-require 'rubygems/package'
 require 'fileutils'
 
 module Dockly::Util::Tar
@@ -35,47 +33,26 @@ module Dockly::Util::Tar
   # Returns a StringIO whose underlying String
   # is the contents of the tar file.
   def tar(path, output)
-    tarfile = File.open(output, 'wb')
-    Gem::Package::TarWriter.new(tarfile) do |tar|
-      Dir[File.join(path, "**/*")].each do |file|
-        mode = File.stat(file).mode
-        relative_file = file.sub(/^#{Regexp::escape path}\/?/, '')
-
-        if File.directory?(file)
-          tar.mkdir relative_file, mode
-        else
-          tar.add_file relative_file, mode do |tf|
-            begin
-              File.open(file, "rb") { |f| tf.write f.read }
-            rescue => ex
-              binding.pry
-            end
-          end
-        end
-      end
+    FileUtils.mkdir_p(File.dirname(output))
+    puts "tarring #{path} to #{output}"
+    tar_command = "tar -cf #{output} -C #{File.dirname(path)} #{File.basename(path)}"
+    puts "Tar Command: #{tar_command}"
+    IO.popen(tar_command) do |io|
+      puts io.read
     end
-
-    tarfile.rewind
-    tarfile
+    File.open(output, 'rb+')
   end
 
   # untars the given IO into the specified
   # directory
-  def untar(io, destination)
-    Gem::Package::TarReader.new io do |tar|
-      tar.each do |tarfile|
-        destination_file = File.join destination, tarfile.full_name
-
-        if tarfile.directory?
-          FileUtils.mkdir_p destination_file
-        else
-          destination_directory = File.dirname(destination_file)
-          FileUtils.mkdir_p destination_directory unless File.directory?(destination_directory)
-          File.open destination_file, "wb" do |f|
-            f.print tarfile.read
-          end
-        end
-      end
+  def untar(input_io, destination)
+    puts "untarring #{input_io.path} to #{destination}"
+    FileUtils.mkdir_p(destination)
+    untar_command = "tar -xf #{input_io.path} -C #{destination}"
+    puts "Untar command: #{untar_command}"
+    IO.popen(untar_command) do |io|
+      puts io.read
     end
+    input_io
   end
 end

@@ -1,12 +1,15 @@
 class Dockly::BuildCache::Local < Dockly::BuildCache::Base
   def run_build
-    data = ""
-    IO.popen(build_command) do |io|
-      data << io.read
+    puts "Build command: #{build_command}"
+    Bundler.with_clean_env do
+      IO.popen(build_command) do |io|
+        puts io.read
+      end
     end
     raise "Build Cache `#{build_command}` failed to run." unless $?.success?
     FileUtils.mkdir_p(File.dirname(save_file))
-    Dockly::Util::Tar.tar(output_directory, save_file)
+    tar_file = Dockly::Util::Tar.tar(output_directory, save_file)
+    push_to_s3(tar_file)
   end
 
   def output_directory
@@ -19,7 +22,7 @@ class Dockly::BuildCache::Local < Dockly::BuildCache::Base
 
   def push_cache(version)
     if cache = pull_from_s3(version)
-      dest = File.expand_path(output_dir)
+      dest = File.dirname(File.expand_path(output_dir))
       Dockly::Util::Tar.untar(cache, dest)
     else
       info "could not find #{s3_object(output_dir)}"
