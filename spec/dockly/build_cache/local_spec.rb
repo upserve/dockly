@@ -7,7 +7,7 @@ describe Dockly::BuildCache::Local do
     build_cache.s3_bucket 'fake'
     build_cache.s3_object_prefix 'object'
     build_cache.hash_command "md5sum #{File.join(Dir.pwd, 'Gemfile')} | awk '{ print $1 }'"
-    build_cache.build_command 'touch lol'
+    build_cache.build_command 'mkdir -p tmp && touch tmp/lol'
     build_cache.output_dir 'lib'
   end
 
@@ -18,8 +18,8 @@ describe Dockly::BuildCache::Local do
       build_cache.stub(:push_cache)
       build_cache.stub(:push_to_s3)
 
-      if File.exist?('lol')
-        File.delete('lol')
+      if File.exist?('tmp/lol')
+        File.delete('tmp/lol')
       end
     end
 
@@ -29,7 +29,7 @@ describe Dockly::BuildCache::Local do
       it "does not have the file lol" do
         i = build_cache.execute!
         output = ""
-        IO.popen('ls') { |io| output += io.read }
+        IO.popen('ls tmp') { |io| output += io.read }
         output.should_not include('lol')
       end
     end
@@ -42,15 +42,15 @@ describe Dockly::BuildCache::Local do
       end
 
       after do
-        if File.exist?('lol')
-          File.delete('lol')
+        if File.exist?('tmp/lol')
+          File.delete('tmp/lol')
         end
       end
 
       it "does have the file lol" do
         i = build_cache.execute!
         output = ""
-        IO.popen('ls') { |io| output << io.read }
+        IO.popen('ls tmp') { |io| output << io.read }
         output.should include('lol')
       end
     end
@@ -65,7 +65,7 @@ describe Dockly::BuildCache::Local do
       it "does have the file lol" do
         i = build_cache.run_build
         output = ""
-        IO.popen('ls') { |io| output << io.read }
+        IO.popen('ls tmp') { |io| output << io.read }
         output.should include('lol')
       end
     end
