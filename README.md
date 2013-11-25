@@ -2,8 +2,8 @@
 [![Build Status](https://travis-ci.org/swipely/dockly.png?branch=refactor_setup)](https://travis-ci.org/swipely/dockly)
 [![Dependency Status](https://gemnasium.com/swipely/dockly.png)](https://gemnasium.com/swipely/dockly)
 
-Dockly
-=======
+![Dockly](https://raw.github.com/swipely/dockly/master/img/dockly.png)
+=========================================================================================
 
 `dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, quite a few assumptions can be made about your stack:
 
