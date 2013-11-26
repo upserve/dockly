@@ -54,8 +54,20 @@ describe Dockly::BuildCache::Base do
       subject.stub(:hash_output) { 'lel' }
     end
 
-    it 'returns the s3_prefix merged with the hash_output' do
-      subject.s3_object(subject.hash_output).should == 'lollel'
+    context "without an arch_output" do
+      it 'returns the s3_prefix merged with the hash_output' do
+        subject.s3_object(subject.hash_output).should == 'lollel'
+      end
+    end
+
+    context "with an arch_output" do
+      before do
+        subject.stub(:arch_output) { "linux" }
+      end
+
+      it 'returns the s3_prefix merged with the hash_output' do
+        subject.s3_object(subject.hash_output).should == 'lol_linux_lel'
+      end
     end
   end
 end

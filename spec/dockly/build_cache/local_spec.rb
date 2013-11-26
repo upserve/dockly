@@ -6,6 +6,7 @@ describe Dockly::BuildCache::Local do
   before do
     build_cache.s3_bucket 'fake'
     build_cache.s3_object_prefix 'object'
+    build_cache.arch_command 'uname -r'
     build_cache.hash_command "md5sum #{File.join(Dir.pwd, 'Gemfile')} | awk '{ print $1 }'"
     build_cache.build_command 'mkdir -p tmp && touch tmp/lol'
     build_cache.output_dir 'lib'
@@ -87,7 +88,7 @@ describe Dockly::BuildCache::Local do
     }
 
     context "when hash command returns successfully" do
-      it 'returns the output of the hash_command in the container' do
+      it 'returns the output of the hash_command' do
         build_cache.hash_output.should == output
       end
     end
@@ -99,6 +100,48 @@ describe Dockly::BuildCache::Local do
 
       it 'raises an error' do
         expect { build_cache.hash_output }.to raise_error
+      end
+    end
+  end
+
+  describe '#arch_output' do
+    let(:output) {
+      "3.8.0-23-generic"
+    }
+
+    context "when there is no arch_command" do
+      let!(:arch_command) { build_cache.arch_command }
+      before do
+        build_cache.instance_variable_set(:@arch_command, nil)
+      end
+      after do
+        build_cache.instance_variable_set(:@arch_command, arch_command)
+      end
+
+      it 'should be nil' do
+        expect(build_cache.arch_command).to be_nil
+      end
+    end
+
+    context "when arch command returns successfully" do
+      let(:status) { double(:status) }
+      before do
+        status.stub(:"success?") { true }
+        build_cache.stub(:run_command) { [status, output] }
+      end
+
+      it 'returns the output of the arch_command' do
+        expect(build_cache.arch_output).to eq(output)
+      end
+    end
+
+    context "when hash command returns failure" do
+      before do
+        build_cache.arch_command 'md6sum'
+      end
+
+      it 'raises an error' do
+        expect { build_cache.arch_output }.to raise_error
       end
     end
   end

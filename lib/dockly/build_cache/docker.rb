@@ -8,8 +8,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   end
 
   def run_build
-    container = image.run(['/bin/bash', '-lc', "cd #{command_directory} && #{build_command}"])
-    status = container.wait(3600)['StatusCode'] # 1 hour max timeout
+    status, body, container = run_command(build_command)
     raise "Build Cache `#{build_command}` failed to run." unless status.zero?
     cache = copy_output_dir(container)
     debug "pushing #{output_directory} to s3"
@@ -47,12 +46,27 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   def hash_output
     ensure_present! :image, :hash_command
     @hash_output ||= begin
-      resp = ""
-      container = image.run(["/bin/bash", "-lc", "cd #{command_directory} && #{hash_command}"])
-      container.attach { |source,chunk| resp += chunk }
-      status = container.wait['StatusCode']
+      status, body, container = run_command(hash_command)
       raise "Hash Command `#{hash_command}` failed to run" unless status.zero?
-      resp.strip
+      body
     end
+  end
+
+  def arch_output
+    return if arch_command.nil?
+    ensure_present! :image
+    @arch_output ||= begin
+      status, body, container = run_command(arch_command)
+      raise "Arch Command `#{arch_command}` failed to run" unless status.zero?
+      body
+    end
+  end
+
+  def run_command(command)
+    resp = ""
+    container = image.run(["/bin/bash", "-lc", "cd #{command_directory} && #{command}"])
+    container.attach { |source,chunk| resp += chunk }
+    status = container.wait['StatusCode']
+    [status, resp.strip, container]
   end
 end

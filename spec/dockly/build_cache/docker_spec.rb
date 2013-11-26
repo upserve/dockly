@@ -13,6 +13,7 @@ describe Dockly::BuildCache::Docker, :docker do
     build_cache.s3_bucket 'lol'
     build_cache.s3_object_prefix 'swag'
     build_cache.image = image
+    build_cache.arch_command "uname -r"
     build_cache.hash_command 'md5sum /etc/vim/vimrc'
     build_cache.build_command 'touch lol'
     build_cache.output_dir '/etc/vim'
@@ -145,6 +146,42 @@ describe Dockly::BuildCache::Docker, :docker do
       expect(file.path).to include("#{hash}")
       file.should be_a File
       file.read.should include('root/.bashrc')
+    end
+  end
+
+  describe '#arch_output' do
+    let(:output) {
+      "3.8.0-27-generic"
+    }
+
+    context "when there is no arch_command" do
+      let!(:arch_command) { build_cache.arch_command }
+      before do
+        build_cache.instance_variable_set(:@arch_command, nil)
+      end
+      after do
+        build_cache.instance_variable_set(:@arch_command, arch_command)
+      end
+
+      it 'should be nil' do
+        expect(build_cache.arch_command).to be_nil
+      end
+    end
+
+    context "when arch command returns successfully" do
+      it 'returns the output of the arch_command' do
+        expect(build_cache.arch_output).to eq(output)
+      end
+    end
+
+    context "when hash command returns failure" do
+      before do
+        build_cache.arch_command 'md6sum'
+      end
+
+      it 'raises an error' do
+        expect { build_cache.arch_output }.to raise_error
+      end
     end
   end
 end
