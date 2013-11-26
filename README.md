@@ -74,10 +74,13 @@ The `build_cache` DSL is used to prevent rebuilding assets every build and used 
     - description: the name prepended to the package; allows for namespacing your caches
 - `hash_command`
     - required: `true`
-    - description: command run inside of the Docker image to determine if the build cache is up to date (eg. `md5sum ... | awk '{ print $1 }'`)
+    - description: command run to determine if the build cache is up to date (eg. `md5sum ... | awk '{ print $1 }'`)
+- `arch_command`
+    - required: `false`
+    - description: command run to find the current architecture (not required, but allows namespacing of the build caches)
 - `build_command`
     - required: `true`
-    - description: command run inside of the Docker image when the build cache is out of date
+    - description: command run when the build cache is out of date
 - `output_dir`
     - required: `true`
     - description: where the cache is located in the Docker image filesystem
