@@ -35,11 +35,11 @@ class Dockly::BuildCache::Local < Dockly::BuildCache::Base
     end
   end
 
-  def arch_output
-    return if arch_command.nil?
-    @arch_output ||= begin
-      status, body = run_command(arch_command)
-      raise "Arch Command `#{arch_command} failed to run" unless status.success?
+  def parameter_output(command)
+    raise "Parameter Command tried to run but not found" unless parameter_commands.keys.include?(command)
+    @parameter_commands[command] ||= begin
+      status, body = run_command(command)
+      raise "Parameter Command `#{command} failed to run" unless status.success?
       body
     end
   end

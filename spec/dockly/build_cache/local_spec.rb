@@ -6,7 +6,6 @@ describe Dockly::BuildCache::Local do
   before do
     build_cache.s3_bucket 'fake'
     build_cache.s3_object_prefix 'object'
-    build_cache.arch_command 'uname -r'
     build_cache.hash_command "md5sum #{File.join(Dir.pwd, 'Gemfile')} | awk '{ print $1 }'"
     build_cache.build_command 'mkdir -p tmp && touch tmp/lol'
     build_cache.output_dir 'lib'
@@ -104,44 +103,38 @@ describe Dockly::BuildCache::Local do
     end
   end
 
-  describe '#arch_output' do
-    let(:output) {
-      "3.8.0-23-generic"
-    }
-
-    context "when there is no arch_command" do
-      let!(:arch_command) { build_cache.arch_command }
-      before do
-        build_cache.instance_variable_set(:@arch_command, nil)
-      end
-      after do
-        build_cache.instance_variable_set(:@arch_command, arch_command)
-      end
-
-      it 'should be nil' do
-        expect(build_cache.arch_command).to be_nil
-      end
+  describe '#parameter_output' do
+    before do
+      build_cache.parameter_command command
     end
 
-    context "when arch command returns successfully" do
+    let(:output) { "3.8.0-23-generic" }
+    context "when parameter command returns successfully" do
+      let(:command) { "uname -r" }
       let(:status) { double(:status) }
       before do
         status.stub(:"success?") { true }
         build_cache.stub(:run_command) { [status, output] }
       end
 
-      it 'returns the output of the arch_command' do
-        expect(build_cache.arch_output).to eq(output)
+      it 'returns the output of the parameter_command' do
+        expect(build_cache.parameter_output(command)).to eq(output)
       end
     end
 
-    context "when hash command returns failure" do
-      before do
-        build_cache.arch_command 'md6sum'
-      end
+    context "when parameter command returns failure" do
+      let(:command) { "md6sum" }
 
       it 'raises an error' do
-        expect { build_cache.arch_output }.to raise_error
+        expect { build_cache.parameter_output(command) }.to raise_error
+      end
+    end
+
+    context "when a parameter command isn't previously added" do
+      let(:command) { "md5sum /etc/vim/vimrc" }
+
+      it 'raises an error' do
+        expect { build_cache.parameter_output("#{command}1") }.to raise_error
       end
     end
   end

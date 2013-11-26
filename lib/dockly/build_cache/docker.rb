@@ -52,12 +52,12 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     end
   end
 
-  def arch_output
-    return if arch_command.nil?
+  def parameter_output(command)
     ensure_present! :image
-    @arch_output ||= begin
-      status, body, container = run_command(arch_command)
-      raise "Arch Command `#{arch_command}` failed to run" unless status.zero?
+    raise "Parameter Command tried to run but not found" unless parameter_commands.keys.include?(command)
+    @parameter_commands[command] ||= begin
+      status, body, container = run_command(command)
+      raise "Parameter Command `#{command}` failed to run" unless status.zero?
       body
     end
   end

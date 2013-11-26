@@ -7,10 +7,11 @@ class Dockly::BuildCache::Base
   logger_prefix '[dockly build_cache]'
 
   dsl_attribute :s3_bucket, :s3_object_prefix, :use_latest,
-                :hash_command, :build_command, :arch_command,
+                :hash_command, :build_command, :parameter_commands,
                 :base_dir, :command_dir, :output_dir, :tmp_dir
 
   default_value :use_latest, false
+  default_value :parameter_commands, {}
   default_value :command_dir, '.'
   default_value :output_dir, '.'
   default_value :tmp_dir, '/tmp'
@@ -73,7 +74,11 @@ class Dockly::BuildCache::Base
   def hash_output
   end
 
-  def arch_output
+  def parameter_output(command)
+  end
+
+  def parameter_command(command)
+    parameter_commands[command] = nil
   end
 
   def push_to_s3(file)
@@ -88,7 +93,9 @@ class Dockly::BuildCache::Base
 
   def s3_object(file)
     output = "#{s3_object_prefix}"
-    output << "_#{arch_output}_" unless arch_output.nil?
+    parameter_commands.each do |parameter_command|
+      output << "#{parameter_output(parameter_command)}_" unless parameter_output(parameter_command).nil?
+    end
     output << "#{file}"
   end
 

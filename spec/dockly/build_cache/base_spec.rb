@@ -62,11 +62,12 @@ describe Dockly::BuildCache::Base do
 
     context "with an arch_output" do
       before do
-        subject.stub(:arch_output) { "linux" }
+        subject.parameter_command "linux"
+        subject.stub(:parameter_output) { "linux" }
       end
 
       it 'returns the s3_prefix merged with the hash_output' do
-        subject.s3_object(subject.hash_output).should == 'lol_linux_lel'
+        subject.s3_object(subject.hash_output).should == 'lollinux_lel'
       end
     end
   end
