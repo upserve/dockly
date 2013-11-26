@@ -13,3 +13,4 @@ build/
 dist/
 
 docker-export-ubuntu-latest.tar.gz
+tmp

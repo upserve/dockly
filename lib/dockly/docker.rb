@@ -10,13 +10,15 @@ class Dockly::Docker
   include Dockly::Util::Logger::Mixin
 
   logger_prefix '[dockly docker]'
+
+  dsl_class_attribute :build_cache, Dockly::BuildCache.model, type: Array
+
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
-    :timeout, :cleanup_images, :build_caches
+    :timeout, :cleanup_images
 
   default_value :tag, nil
   default_value :build_dir, 'build/docker'
   default_value :package_dir, '/opt/docker'
-  default_value :build_caches, []
   default_value :cleanup_images, false
   default_value :timeout, 60
 
@@ -43,7 +45,7 @@ class Dockly::Docker
 
   def run_build_caches(image)
     info "starting build caches"
-    build_caches.each do |cache|
+    (build_cache || []).each do |cache|
       cache.image = image
       image = cache.execute!
     end
@@ -156,10 +158,6 @@ class Dockly::Docker
       FileUtils.mv("#{path}.tmp", path, :force => true)
     end
     path
-  end
-
-  def build_cache(&block)
-    build_caches << Dockly::BuildCache.new(&block)
   end
 
   def repository(value = nil)

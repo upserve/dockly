@@ -2,8 +2,8 @@
 [![Build Status](https://travis-ci.org/swipely/dockly.png?branch=refactor_setup)](https://travis-ci.org/swipely/dockly)
 [![Dependency Status](https://gemnasium.com/swipely/dockly.png)](https://gemnasium.com/swipely/dockly)
 
-Dockly
-=======
+![Dockly](https://raw.github.com/swipely/dockly/master/img/dockly.png)
+======================================================================
 
 `dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, quite a few assumptions can be made about your stack:
 
@@ -74,10 +74,14 @@ The `build_cache` DSL is used to prevent rebuilding assets every build and used 
     - description: the name prepended to the package; allows for namespacing your caches
 - `hash_command`
     - required: `true`
-    - description: command run inside of the Docker image to determine if the build cache is up to date (eg. `md5sum ... | awk '{ print $1 }'`)
+    - description: command run to determine if the build cache is up to date (eg. `md5sum ... | awk '{ print $1 }'`)
+- `parameter_command`
+    - required: `false`
+    - allows multiple
+    - description: command run to build specific versions of build caches -- useful for multiple operating systems (not required)
 - `build_command`
     - required: `true`
-    - description: command run inside of the Docker image when the build cache is out of date
+    - description: command run when the build cache is out of date
 - `output_dir`
     - required: `true`
     - description: where the cache is located in the Docker image filesystem
@@ -135,6 +139,7 @@ In addition to the above attributes, `docker` has the following references:
 
 - `build_cache`
     - required: `false`
+    - allows multiple
     - class: `Dockly::BuildCache`
     - description: a caching system to stop rebuilding/compiling the same files every time
 
