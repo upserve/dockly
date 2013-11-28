@@ -93,7 +93,7 @@ class Dockly::BuildCache::Base
 
   def s3_object(file)
     output = "#{s3_object_prefix}"
-    parameter_commands.each do |parameter_command|
+    parameter_commands.each do |parameter_command, _|
       output << "#{parameter_output(parameter_command)}_" unless parameter_output(parameter_command).nil?
     end
     output << "#{file}"
