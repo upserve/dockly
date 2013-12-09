@@ -46,11 +46,23 @@ class Dockly::BuildCache::Local < Dockly::BuildCache::Base
 
   def run_command(command)
     resp = ""
-    Bundler.with_clean_env do
+    run_with_bundler do
       IO.popen(command) do |io|
         resp << io.read
       end
     end
     [$?, resp.strip]
+  end
+
+  if defined?(Bundler)
+    def run_with_bundler
+      Bundler.with_clean_env do
+        yield
+      end
+    end
+  else
+    def run_with_bundler
+      yield
+    end
   end
 end
