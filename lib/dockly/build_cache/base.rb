@@ -14,7 +14,7 @@ class Dockly::BuildCache::Base
   default_value :parameter_commands, {}
   default_value :command_dir, '.'
   default_value :output_dir, '.'
-  default_value :tmp_dir, '/tmp'
+  default_value :tmp_dir, Dir.tmpdir
 
   def execute!
     debug "Looking for cache for hash: #{hash_output}"
