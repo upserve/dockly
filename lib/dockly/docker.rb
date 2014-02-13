@@ -9,6 +9,8 @@ class Dockly::Docker
   include Dockly::Util::DSL
   include Dockly::Util::Logger::Mixin
 
+  autoload :Registry, 'dockly/docker/registry'
+
   logger_prefix '[dockly docker]'
 
   dsl_class_attribute :build_cache, Dockly::BuildCache.model, type: Array
