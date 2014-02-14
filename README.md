@@ -163,7 +163,7 @@ The `registry` DSL is used to define Docker Registries. It has the following att
     - description: the email to authenticate
 - `password`:
     - required: `false`
-    - description: the user's password; unless supplied, `ENV['DOCKER_REGISTRY_PASSWORD']` will be checked
+    - description: the user's password; unless supplied, `ENV['DOCKER_REGISTRY_PASSWORD']` will be checked. not that `ENV['DOCKER_REGISTRY_PASSWORD']` is required to be set on the host on to which the package will be deployed
 - `server_address`:
     - required: `true`
     - default: `https://index.docker.io/v1`
