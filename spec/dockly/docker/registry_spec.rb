@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Dockly::Docker::Registry do
+describe Dockly::Docker::Registry, :current do
   subject { described_class.new(:name => :dockly_registry) }
 
   describe '#authenticate!' do
@@ -16,7 +16,7 @@ describe Dockly::Docker::Registry do
       before { ::Docker.stub(:authenticate!) }
 
       it 'prompts the user for the password' do
-        subject.should_receive(:get_password)
+        ENV.should_receive(:[])
         expect { subject.authenticate! }.to_not raise_error
       end
     end
@@ -35,7 +35,7 @@ describe Dockly::Docker::Registry do
         before { ::Docker.stub(:authenticate!) }
 
         it 'does nothing' do
-          subject.should_not_receive(:get_password)
+          ENV.should_not_receive(:[])
           expect { subject.authenticate! }.to_not raise_error
         end
       end
@@ -46,33 +46,9 @@ describe Dockly::Docker::Registry do
         end
 
         it 'raieses an error' do
-          subject.should_not_receive(:get_password)
+          ENV.should_not_receive(:[])
           expect { subject.authenticate! }.to raise_error
         end
-      end
-    end
-  end
-
-  describe '#get_password' do
-    context 'when STDOUT is not a tty' do
-      before { STDIN.stub(:tty?).and_return(false) }
-
-      it 'raises an error' do
-        expect { subject.get_password }.to raise_error
-      end
-    end
-
-    context 'when STDOUT is a tty' do
-      let(:password) { '~~my password~~' }
-
-      before do
-        STDIN.stub(:tty?).and_return(true)
-        STDOUT.stub(:puts)
-        STDIN.stub(:gets).and_return(password)
-      end
-
-      it 'reads the password from the user' do
-        subject.get_password.should == password
       end
     end
   end
