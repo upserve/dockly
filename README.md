@@ -142,8 +142,32 @@ In addition to the above attributes, `docker` has the following references:
     - allows multiple
     - class: `Dockly::BuildCache`
     - description: a caching system to stop rebuilding/compiling the same files every time
+- `build_cache`
+    - required: `false`
+    - allows one
+    - class: `Dockly::Docker::Registry`
+    - description: a registry to push to in lieu of exporting as a tar -- the registry will be automatically pulled upon installing the debian package
 
 Need finer control of Docker packages? We also wrote [docker-api](https://github.com/swipely/docker-api).
+
+`registry`
+--------
+
+The `registry` DSL is used to define Docker Registries. It has the following attributes:
+
+- `username`
+    - required: `true`
+    - description: the username to authenticate
+- `email`:
+    - required: `true`
+    - description: the email to authenticate
+- `password`:
+    - required: `false`
+    - description: the user's password; unless supplied, `ENV['DOCKER_REGISTRY_PASSWORD']` will be checked
+- `server_address`:
+    - required: `true`
+    - default: `https://index.docker.io/v1`
+    - description: the server where the registry lives
 
 `foreman`
 ---------
