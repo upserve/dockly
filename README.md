@@ -143,7 +143,37 @@ In addition to the above attributes, `docker` has the following references:
     - class: `Dockly::BuildCache`
     - description: a caching system to stop rebuilding/compiling the same files every time
 
+- `registry`
+    - required: `false`
+    - class `Dockly::Docker::Registry`
+    - description: use docker-registry instead of packages
+
 Need finer control of Docker packages? We also wrote [docker-api](https://github.com/swipely/docker-api).
+
+`registry`
+---------
+
+Optional
+
+The `registry` DSL is used to define a docker registry. It has the following attributes:
+
+- `name`
+- `server_address`
+    - required: `true`
+    - default: `'https://index.docker.io/v1/'`
+    - description: The address of the registry.
+- `email`
+    - required: `true`
+    - default: ``
+    - description: Your email address.
+- `username`
+    - required: `true`
+    - default: `nil`
+    - description: Your username for the registry.
+- `password`
+    - required: `true`
+    - default: `nil`
+    - description: Your password for the registry.
 
 `foreman`
 ---------
@@ -254,6 +284,13 @@ deb :dockly_package do
     build <<-EOF
       run cd /app && ./configure && make
     EOF
+
+    registry do
+      server_address 'https://registry.example.com:5000'
+      email 'johndoe@example.com'
+      username 'johndoe'
+      password 'xyzzy'
+    end
   end
 
   foreman do
