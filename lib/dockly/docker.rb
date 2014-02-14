@@ -14,6 +14,7 @@ class Dockly::Docker
   logger_prefix '[dockly docker]'
 
   dsl_class_attribute :build_cache, Dockly::BuildCache.model, type: Array
+  dsl_class_attribute :registry, Dockly::Docker::Registry
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
     :timeout, :cleanup_images
@@ -28,17 +29,29 @@ class Dockly::Docker
     Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
     docker_tar = File.absolute_path(ensure_tar(fetch_import))
 
-    import = import_base(docker_tar)
+    images = {}
 
-    cleanup = add_git_archive(import)
-    cleanup = run_build_caches(cleanup)
-    cleanup = build_image(cleanup)
+    images[:one] = import_base(docker_tar)
+    images[:two] = add_git_archive(images[:one])
+    images[:three] = run_build_caches(images[:two])
+    images[:four] = build_image(images[:three])
 
-    export_image(cleanup)
+    export_image(images[:four])
 
     true
   ensure
-    cleanup.remove if cleanup_images && !cleanup.nil?
+    cleanup(images.values.compact) if cleanup_images
+  end
+
+  def cleanup(images)
+    ::Docker::Container.all(:all => true).each do |container|
+      image_id = container.json['Image']
+      if images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
+        container.kill
+        container.delete
+      end
+    end
+    images.each { |image| image.remove rescue nil }
   end
 
   def export_filename
@@ -118,20 +131,40 @@ class Dockly::Docker
     info "starting build from #{image.id}"
     out_image = ::Docker::Image.build("from #{image.id}\n#{build}")
     info "built the image: #{out_image.id}"
-    out_image.tag(:repo => name, :tag => tag)
+    out_image.tag(:repo => repo, :tag => tag)
     out_image
   end
 
+  def repo
+    @repo ||= registry.nil? ? name : "#{registry.username}/#{name}"
+  end
+
   def export_image(image)
-    ensure_present! :name, :build_dir
-    container = ::Docker::Container.create('Image' => image.id, 'Cmd' => %w[true])
-    info "created the container: #{container.id}"
-    Zlib::GzipWriter.open(tar_path) do |file|
-      container.export do |chunk, remaining, total|
-        file.write(chunk)
+    ensure_present! :name
+    if registry.nil?
+      ensure_present! :build_dir
+      container = ::Docker::Container.create('Image' => image.id, 'Cmd' => %w[true])
+      info "created the container: #{container.id}"
+      Zlib::GzipWriter.open(tar_path) do |file|
+        container.export do |chunk, remaining, total|
+          file.write(chunk)
+        end
       end
+      info "done writing the docker tar: #{export_filename}"
+    else
+      push_to_registry(image)
     end
-    info "done writing the docker tar: #{export_filename}"
+  end
+
+  def push_to_registry(image)
+    ensure_present! :registry
+    info "Exporting #{image.id} to Docker registry at #{registry.server_address}"
+    registry.authenticate!
+    image = Docker::Image.all(:all => true).find { |img|
+      img.id.start_with?(image.id) || image.id.start_with?(img.id)
+    }
+    raise "Could not find image after authentication" if image.nil?
+    image.push
   end
 
   def fetch_import

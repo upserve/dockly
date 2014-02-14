@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Dockly::Docker::Registry, :current do
+describe Dockly::Docker::Registry do
   subject { described_class.new(:name => :dockly_registry) }
 
   describe '#authenticate!' do
@@ -54,7 +54,7 @@ describe Dockly::Docker::Registry, :current do
   end
 
   describe '#get_password' do
-    context 'when STDIN is not a tty' do
+    context 'when STDOUT is not a tty' do
       before { STDIN.stub(:tty?).and_return(false) }
 
       it 'raises an error' do
@@ -62,12 +62,12 @@ describe Dockly::Docker::Registry, :current do
       end
     end
 
-    context 'when STDIN is a tty' do
+    context 'when STDOUT is a tty' do
       let(:password) { '~~my password~~' }
 
       before do
         STDIN.stub(:tty?).and_return(true)
-        STDIN.stub(:puts)
+        STDOUT.stub(:puts)
         STDIN.stub(:gets).and_return(password)
       end
 
