@@ -144,7 +144,7 @@ private
     if registry
       [
         pre_install,
-        "docker login -e '#{registry.email}' -p '#{registry.password}' -u '#{registry.username}'",
+        "docker login -e '#{registry.email}' -p '$DOCKER_REGISTRY_PASSWORD' -u '#{registry.username}'",
         "docker pull #{docker.repo}"
       ].join("\n")
     else
