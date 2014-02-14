@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Dockly::BuildCache::Docker, :docker, :current do
+describe Dockly::BuildCache::Docker, :docker do
   let!(:build_cache) { described_class.new!(:name => :test_build_cache) }
   let!(:docker) do
     Dockly::Docker.new!(:name => :test_docker) do
