@@ -136,7 +136,14 @@ class Dockly::Docker
   end
 
   def repo
-    @repo ||= registry.nil? ? name : "#{registry.username}/#{name}"
+    @repo ||= case
+    when registry.nil?
+      name
+    when registry.default_server_address?
+      "#{registry.username}/#{name}"
+    else
+      "#{registry.server_address}/#{name}"
+    end
   end
 
   def export_image(image)
