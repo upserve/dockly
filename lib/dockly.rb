@@ -1,22 +1,19 @@
 require 'dockly/util'
+require 'dockly/util/tar'
+require 'dockly/util/git'
 require 'fog'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 
 module Dockly
-end
-
-require 'dockly/aws'
-require 'dockly/foreman'
-require 'dockly/build_cache'
-require 'dockly/docker'
-require 'dockly/deb'
-require 'dockly/util/tar'
-require 'dockly/util/git'
-
-module Dockly
   attr_reader :instance, :git_sha
   attr_writer :load_file
+
+  autoload :AWS, 'dockly/aws'
+  autoload :Foreman, 'dockly/foreman'
+  autoload :BuildCache, 'dockly/build_cache'
+  autoload :Docker, 'dockly/docker'
+  autoload :Deb, 'dockly/deb'
 
   LOAD_FILE = 'dockly.rb'
 
