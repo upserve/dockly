@@ -4,6 +4,15 @@ describe Dockly::Docker::Registry, :current do
   subject { described_class.new(:name => :dockly_registry) }
 
   describe '#authenticate!' do
+    context 'when authentication is not required' do
+      before { subject.authentication_required false }
+
+      it 'does nothing' do
+        ::Docker.should_not_receive(:authenticate!)
+        subject.authenticate!
+      end
+    end
+
     context 'when the password has not been supplied via the DSL' do
       subject {
         described_class.new(
@@ -16,7 +25,7 @@ describe Dockly::Docker::Registry, :current do
       before { ::Docker.stub(:authenticate!) }
 
       it 'prompts the user for the password' do
-        ENV.should_receive(:[])
+        ENV.should_receive(:[]).and_return('password')
         expect { subject.authenticate! }.to_not raise_error
       end
     end
