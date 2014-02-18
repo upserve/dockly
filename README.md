@@ -99,8 +99,12 @@ The `build_cache` DSL is used to prevent rebuilding assets every build and used 
 
 The `docker` DSL is used to define Docker containers. It has the following attributes:
 
+- `registry_import`
+    - required: `false` -- only required when `import` is not supplied
+    - description: the location  of the base image to start building from
+    - exmaples: `paintedfox/ruby`, `registry.example.com/my-custom-image`
 - `import`
-    - required: `true`
+    - required: `false` -- only required when `registry_import` is not supplied
     - description: the location (url or S3 path) of the base image to start building from
 - `git_archive`:
     - required: `false`
