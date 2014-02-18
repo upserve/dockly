@@ -171,7 +171,7 @@ class Dockly::Docker
       img.id.start_with?(image.id) || image.id.start_with?(img.id)
     }
     raise "Could not find image after authentication" if image.nil?
-    image.push
+    image.push(registry.to_h, :registry => registry.server_address)
   end
 
   def fetch_import
