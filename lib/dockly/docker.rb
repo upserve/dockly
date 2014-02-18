@@ -17,7 +17,7 @@ class Dockly::Docker
   dsl_class_attribute :registry, Dockly::Docker::Registry
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
-    :timeout, :cleanup_images
+    :timeout, :cleanup_images, :registry_import
 
   default_value :tag, nil
   default_value :build_dir, 'build/docker'
@@ -27,11 +27,17 @@ class Dockly::Docker
 
   def generate!
     Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
-    docker_tar = File.absolute_path(ensure_tar(fetch_import))
-
     images = {}
 
-    images[:one] = import_base(docker_tar)
+    if registry_import.nil?
+      docker_tar = File.absolute_path(ensure_tar(fetch_import))
+      images[:one] = import_base(docker_tar)
+    else
+      ensure_present! :registry
+      registry.authenticate!
+      images[:one] = ::Docker::Image.create('fromImage' => registry_import)
+    end
+
     images[:two] = add_git_archive(images[:one])
     images[:three] = run_build_caches(images[:two])
     images[:four] = build_image(images[:three])

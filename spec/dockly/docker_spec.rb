@@ -213,7 +213,7 @@ describe Dockly::Docker do
     context 'when there is a registry' do
       subject {
         Dockly::Docker.new do
-          import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
+          registry_import 'nahiluhmot/base'
           git_archive '.'
           build "run touch /it_worked"
           repository 'dockly_test'
