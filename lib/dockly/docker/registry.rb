@@ -21,12 +21,7 @@ class Dockly::Docker::Registry
     ensure_present! :email, :password, :server_address, :username
 
     debug "Attempting to authenticate at #{server_address}"
-    ::Docker.authenticate!(
-      'username' => username,
-      'password' => password,
-      'serveraddress' => server_address,
-      'email' => email
-    )
+    ::Docker.authenticate!(self.to_h)
     info "Successfully authenticated at #{server_address} with username #{username}"
   rescue ::Docker::Error::AuthenticationError
     raise "Could not authenticate at #{server_address} with username #{username}"
@@ -34,5 +29,14 @@ class Dockly::Docker::Registry
 
   def default_server_address?
     server_address == DEFAULT_SERVER_ADDRESS
+  end
+
+  def to_h
+    {
+      'serveraddress' => server_address,
+      'email' => email,
+      'username' => username,
+      'password' => password
+    }
   end
 end
