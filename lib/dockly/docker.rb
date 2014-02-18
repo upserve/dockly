@@ -33,8 +33,7 @@ class Dockly::Docker
       docker_tar = File.absolute_path(ensure_tar(fetch_import))
       images[:one] = import_base(docker_tar)
     else
-      ensure_present! :registry
-      registry.authenticate!
+      registry.authenticate! unless registry.nil?
       images[:one] = ::Docker::Image.create('fromImage' => registry_import)
     end
 
