@@ -117,9 +117,10 @@ private
   end
 
   def add_docker(package)
+    return if docker.nil?
     info "adding docker image"
     docker.generate!
-    return if docker.nil? || !docker.registry.nil?
+    return unless docker.registry.nil?
     package.attributes[:prefix] = docker.package_dir
     Dir.chdir(File.dirname(docker.tar_path)) do
       package.input(File.basename(docker.tar_path))
