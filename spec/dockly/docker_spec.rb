@@ -173,9 +173,9 @@ describe Dockly::Docker do
             paths << entry.header.name
           end
           paths.size.should be > 1000
-          paths.should include('./sbin/init')
-          paths.should include('./lib/dockly.rb')
-          paths.should include('./it_worked')
+          paths.should include('sbin/init')
+          paths.should include('lib/dockly.rb')
+          paths.should include('it_worked')
         }.to change { ::Docker::Image.all(:all => true).length }.by(3)
       end
     end
@@ -191,6 +191,7 @@ describe Dockly::Docker do
           cleanup_images true
         end
       end
+
       it 'builds a docker image' do
         expect {
           subject.generate!
@@ -202,12 +203,33 @@ describe Dockly::Docker do
             paths << entry.header.name
           end
           paths.size.should be > 1000
-          paths.should include('./sbin/init')
-          paths.should include('./lib/dockly.rb')
-          paths.should include('./it_worked')
-        }.to change { ::Docker::Image.all(:all => true).length }.by(0)
+          paths.should include('sbin/init')
+          paths.should include('lib/dockly.rb')
+          paths.should include('it_worked')
+        }.to_not change { ::Docker::Image.all(:all => true).length }
+      end
+    end
+
+    context 'when there is a registry' do
+      subject {
+        Dockly::Docker.new do
+          import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
+          git_archive '.'
+          build "run touch /it_worked"
+          repository 'dockly_test'
+          build_dir 'build/docker'
+
+          registry do
+            username 'nahiluhmot'
+            email 'tomhulihan@swipely.com'
+          end
+        end
+      }
+
+      it 'pushes the image to the registry instead of exporting it' do
+        subject.generate!
+        expect { ::Docker::Image.build('from nahiluhmot/dockly_test') }.to_not raise_error
       end
     end
   end
 end
-

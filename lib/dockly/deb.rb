@@ -92,7 +92,7 @@ private
     debug "converting to deb"
     @deb_package = @dir_package.convert(FPM::Package::Deb)
 
-    @deb_package.scripts[:before_install] = pre_install
+    @deb_package.scripts[:before_install] = compile_pre_install
     @deb_package.scripts[:after_install] = post_install
     @deb_package.scripts[:before_remove] = pre_uninstall
     @deb_package.scripts[:after_remove] = post_uninstall
@@ -120,6 +120,7 @@ private
     return if docker.nil?
     info "adding docker image"
     docker.generate!
+    return unless docker.registry.nil?
     package.attributes[:prefix] = docker.package_dir
     Dir.chdir(File.dirname(docker.tar_path)) do
       package.input(File.basename(docker.tar_path))
@@ -136,6 +137,19 @@ private
         package.input(File.basename(file[:source]))
       end
       package.attributes[:prefix] = nil
+    end
+  end
+
+  def compile_pre_install
+    registry = !docker.nil? && docker.registry
+    if registry
+      [
+        pre_install,
+        "docker login -e '#{registry.email}' -p '$DOCKER_REGISTRY_PASSWORD' -u '#{registry.username}'",
+        "docker pull #{docker.repo}"
+      ].join("\n")
+    else
+      pre_install
     end
   end
 end

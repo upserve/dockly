@@ -59,9 +59,8 @@ describe Dockly::BuildCache::Docker, :docker do
 
       it "does have the file lol" do
         i = build_cache.execute!
-        output = ""
-        i.run('ls /').attach { |source,chunk| output += chunk }
-        output.should include('lol')
+        output = i.run('ls /').attach(:stdout => true)
+        output.first.first.lines.map(&:chomp).should include('lol')
       end
     end
   end
@@ -152,7 +151,7 @@ describe Dockly::BuildCache::Docker, :docker do
     before do
       build_cache.parameter_command command
     end
-    let(:output) { "3.8.0-27-generic" }
+    let(:output) { "3.12.9-2-ARCH" }
 
     context "when parameter command returns successfully" do
       let(:command) { "uname -r" }
