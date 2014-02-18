@@ -155,11 +155,15 @@ Need finer control of Docker packages? We also wrote [docker-api](https://github
 
 The `registry` DSL is used to define Docker Registries. It has the following attributes:
 
+- `authentication_required`
+    - required: `false`
+    - default: `true`
+    - description: a boolean that determines whether or not authentication is required on the registry.
 - `username`
-    - required: `true`
+    - required: `true` unless `authentication_required` is `false`
     - description: the username to authenticate
 - `email`:
-    - required: `true`
+    - required: `true` unless `authentication_required` is `false`
     - description: the email to authenticate
 - `password`:
     - required: `false`
