@@ -102,7 +102,7 @@ The `docker` DSL is used to define Docker containers. It has the following attri
 - `registry_import`
     - required: `false` -- only required when `import` is not supplied
     - description: the location  of the base image to start building from
-    - exmaples: `paintedfox/ruby`, `registry.example.com/my-custom-image`
+    - examples: `paintedfox/ruby`, `registry.example.com/my-custom-image`
 - `import`
     - required: `false` -- only required when `registry_import` is not supplied
     - description: the location (url or S3 path) of the base image to start building from
