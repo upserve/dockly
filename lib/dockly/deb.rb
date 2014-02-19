@@ -143,11 +143,14 @@ private
   def compile_pre_install
     registry = !docker.nil? && docker.registry
     if registry
+      login_str = if registry.authentication_required?
+        "docker login -e '#{registry.email}' -p '$DOCKER_REGISTRY_PASSWORD' -u '#{registry.username}'"
+      end
       [
         pre_install,
-        "docker login -e '#{registry.email}' -p '$DOCKER_REGISTRY_PASSWORD' -u '#{registry.username}'",
+        login_str,
         "docker pull #{docker.repo}"
-      ].join("\n")
+      ].compact.join("\n")
     else
       pre_install
     end
