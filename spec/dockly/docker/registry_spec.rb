@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Dockly::Docker::Registry, :current do
+describe Dockly::Docker::Registry do
   subject { described_class.new(:name => :dockly_registry) }
 
   describe '#authenticate!' do

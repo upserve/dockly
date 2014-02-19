@@ -99,8 +99,12 @@ The `build_cache` DSL is used to prevent rebuilding assets every build and used 
 
 The `docker` DSL is used to define Docker containers. It has the following attributes:
 
+- `registry_import`
+    - required: `false` -- only required when `import` is not supplied
+    - description: the location  of the base image to start building from
+    - examples: `paintedfox/ruby`, `registry.example.com/my-custom-image`
 - `import`
-    - required: `true`
+    - required: `false` -- only required when `registry_import` is not supplied
     - description: the location (url or S3 path) of the base image to start building from
 - `git_archive`:
     - required: `false`
@@ -155,11 +159,15 @@ Need finer control of Docker packages? We also wrote [docker-api](https://github
 
 The `registry` DSL is used to define Docker Registries. It has the following attributes:
 
+- `authentication_required`
+    - required: `false`
+    - default: `true`
+    - description: a boolean that determines whether or not authentication is required on the registry.
 - `username`
-    - required: `true`
+    - required: `true` unless `authentication_required` is `false`
     - description: the username to authenticate
 - `email`:
-    - required: `true`
+    - required: `true` unless `authentication_required` is `false`
     - description: the email to authenticate
 - `password`:
     - required: `false`
