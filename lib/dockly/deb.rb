@@ -149,7 +149,6 @@ private
       [
         pre_install,
         login_str,
-        "docker pull #{docker.repo}"
       ].compact.join("\n")
     else
       pre_install
