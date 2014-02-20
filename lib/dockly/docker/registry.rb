@@ -31,6 +31,26 @@ class Dockly::Docker::Registry
     server_address == DEFAULT_SERVER_ADDRESS
   end
 
+  def config_file
+    @config_file ||= File.join('build', 'docker', 'registry', '.dockercfg')
+  end
+
+  def generate_config_file!
+    return unless authentication_required?
+    @password ||= ENV['DOCKER_REGISTRY_PASSWORD']
+    ensure_present! :username, :password, :email, :server_address
+
+    auth = {
+      server_address => {
+        :auth => Base64.encode64("#{username}:#{password}"),
+        :email => email.to_s
+      }
+    }.to_json
+
+    FileUtils.mkdir_p(File.dirname(config_file))
+    File.open(config_file, 'w') { |file| file.write(auth) }
+  end
+
   def to_h
     {
       'serveraddress' => server_address,

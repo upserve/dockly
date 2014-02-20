@@ -146,7 +146,7 @@ In addition to the above attributes, `docker` has the following references:
     - allows multiple
     - class: `Dockly::BuildCache`
     - description: a caching system to stop rebuilding/compiling the same files every time
-- `build_cache`
+- `registry`
     - required: `false`
     - allows one
     - class: `Dockly::Docker::Registry`

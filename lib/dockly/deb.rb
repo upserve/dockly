@@ -7,7 +7,8 @@ class Dockly::Deb
   logger_prefix '[dockly deb]'
   dsl_attribute :package_name, :version, :release, :arch, :build_dir,
                 :pre_install, :post_install, :pre_uninstall, :post_uninstall,
-                :s3_bucket, :files
+                :s3_bucket, :files, :app_user
+
   dsl_class_attribute :docker, Dockly::Docker
   dsl_class_attribute :foreman, Dockly::Foreman
 
@@ -16,6 +17,7 @@ class Dockly::Deb
   default_value :arch, 'x86_64'
   default_value :build_dir, 'build/deb'
   default_value :files, []
+  default_value :app_user, 'nobody'
 
   def file(source, destination)
     @files << { :source => source, :destination => destination }
@@ -88,11 +90,12 @@ private
     add_docker(@dir_package)
     add_foreman(@dir_package)
     add_files(@dir_package)
+    add_docker_auth_config(@dir_package)
 
     debug "converting to deb"
     @deb_package = @dir_package.convert(FPM::Package::Deb)
 
-    @deb_package.scripts[:before_install] = compile_pre_install
+    @deb_package.scripts[:before_install] = pre_install
     @deb_package.scripts[:after_install] = post_install
     @deb_package.scripts[:before_remove] = pre_uninstall
     @deb_package.scripts[:after_remove] = post_uninstall
@@ -140,19 +143,15 @@ private
     end
   end
 
-  def compile_pre_install
-    registry = !docker.nil? && docker.registry
-    if registry
-      login_str = if registry.authentication_required?
-        "docker login -e '#{registry.email}' -p '$DOCKER_REGISTRY_PASSWORD' -u '#{registry.username}'"
-      end
-      [
-        pre_install,
-        login_str,
-        "docker pull #{docker.repo}"
-      ].compact.join("\n")
-    else
-      pre_install
+  def add_docker_auth_config(package)
+    return if docker.nil? || (registry = docker.registry).nil? || !registry.authentication_required?
+    info "adding docker config file"
+    registry.generate_config_file!
+
+    package.attributes[:prefix] = docker.auth_config_file || "~#{app_user}/.dockercfg"
+    Dir.chdir(File.dirname(registry.config_file)) do
+      package.input(File.basename(registry.config_file))
     end
+    package.attributes[:prefix] = nil
   end
 end
