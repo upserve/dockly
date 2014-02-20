@@ -17,7 +17,7 @@ class Dockly::Docker
   dsl_class_attribute :registry, Dockly::Docker::Registry
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
-    :timeout, :cleanup_images, :registry_import
+    :timeout, :cleanup_images, :registry_import, :auth_config_file
 
   default_value :tag, nil
   default_value :build_dir, 'build/docker'

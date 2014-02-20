@@ -63,6 +63,30 @@ describe Dockly::Deb do
       end
     end
 
+    context 'when it has a docker with registry', :docker do
+      before do
+        subject.docker do
+          name 'deb_test'
+          import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
+          git_archive '.'
+          build 'touch /deb_worked'
+          build_dir 'build/docker'
+          auth_config_file '/etc/docker/.dockercfg'
+
+          registry :test_docker_registry do
+            username 'nahiluhmot'
+            email 'hulihan.tom159@gmail.com'
+          end
+        end
+      end
+
+      it 'builds the docker image and adds it to the deb' do
+        subject.create_package!
+        `dpkg --contents #{filename}`
+            .lines.grep(/.dockercfg/).should_not be_empty
+      end
+    end
+
     context 'when it has files' do
       let(:file1) { Tempfile.new('files') }
       let(:file2) { Tempfile.new('files') }
