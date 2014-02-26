@@ -213,7 +213,7 @@ describe Dockly::Docker do
     context 'when there is a registry' do
       subject {
         Dockly::Docker.new do
-          registry_import 'nahiluhmot/base'
+          registry_import 'nahiluhmot/base', :tag => 'latest'
           git_archive '.'
           build "run touch /it_worked"
           repository 'dockly_test'
