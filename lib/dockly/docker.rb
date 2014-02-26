@@ -17,7 +17,7 @@ class Dockly::Docker
   dsl_class_attribute :registry, Dockly::Docker::Registry
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
-    :timeout, :cleanup_images, :registry_import, :auth_config_file
+    :timeout, :cleanup_images, :auth_config_file
 
   default_value :tag, nil
   default_value :build_dir, 'build/docker'
@@ -34,7 +34,10 @@ class Dockly::Docker
       images[:one] = import_base(docker_tar)
     else
       registry.authenticate! unless registry.nil?
-      images[:one] = ::Docker::Image.create('fromImage' => registry_import)
+      full_name = "#{registry_import[:name]}:#{registry_import[:tag]}"
+      info "Pulling #{full_name}"
+      images[:one] = ::Docker::Image.create('repo' => registry_import[:name], 'tag' => registry_import[:tag])
+      info "Successfully pulled #{full_name}"
     end
 
     images[:two] = add_git_archive(images[:one])
@@ -46,6 +49,16 @@ class Dockly::Docker
     true
   ensure
     cleanup(images.values.compact) if cleanup_images
+  end
+
+  def registry_import(img_name = nil, opts = {})
+    if img_name
+      @registry_import ||= {}
+      @registry_import[:name] = img_name
+      @registry_import[:tag] = opts[:tag] || 'latest'
+    else
+      @registry_import
+    end
   end
 
   def cleanup(images)
