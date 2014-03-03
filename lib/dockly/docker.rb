@@ -36,7 +36,7 @@ class Dockly::Docker
       registry.authenticate! unless registry.nil?
       full_name = "#{registry_import[:name]}:#{registry_import[:tag]}"
       info "Pulling #{full_name}"
-      images[:one] = ::Docker::Image.create('repo' => registry_import[:name], 'tag' => registry_import[:tag])
+      images[:one] = ::Docker::Image.create('fromImage' => registry_import[:name], 'tag' => registry_import[:tag])
       info "Successfully pulled #{full_name}"
     end
 
