@@ -146,7 +146,7 @@ class Dockly::Docker
       'outputPath' => '/'
     )
     info "successfully added the git archive"
-    new_image 
+    new_image
   end
 
   def build_image(image)
