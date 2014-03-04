@@ -62,6 +62,7 @@ class Dockly::Docker
   end
 
   def cleanup(images)
+    info 'Cleaning up intermediate images'
     ::Docker::Container.all(:all => true).each do |container|
       image_id = container.json['Image']
       if images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
@@ -70,6 +71,7 @@ class Dockly::Docker
       end
     end
     images.each { |image| image.remove rescue nil }
+    info 'Done cleaning images'
   end
 
   def export_filename
@@ -113,6 +115,7 @@ class Dockly::Docker
     Grit::Git.with_timeout(120) do
       Dockly::Util::Git.git_repo.archive_to_file(Dockly::Util::Git.git_sha, prefix, git_archive_path, 'tar', 'cat')
     end
+    info "made the git archive for sha #{Dockly::Util::Git.git_sha}"
     git_archive_path
   end
 
@@ -131,26 +134,27 @@ class Dockly::Docker
   def import_base(docker_tar)
     info "importing the docker image from #{docker_tar}"
     image = ::Docker::Image.import(docker_tar)
-    info "imported docker image: #{image.id}"
+    info "imported initial docker image: #{image.id}"
     image
   end
 
   def add_git_archive(image)
     return image if git_archive.nil?
-
-    image.insert_local(
+    info "adding the git archive"
+    new_image = image.insert_local(
       'localPath' => git_archive_tar,
       'outputPath' => '/'
     )
+    info "successfully added the git archive"
+    new_image
   end
 
   def build_image(image)
     ensure_present! :name, :build
-    info "starting build from #{image.id}"
+    info "running custom build steps, starting with id: #{image.id}"
     out_image = ::Docker::Image.build("from #{image.id}\n#{build}")
-    info "built the image: #{out_image.id}"
-    out_image.tag(:repo => repo, :tag => tag)
-    out_image
+    info "finished running custom build steps, result id: #{out_image.id}"
+    out_image.tap { |img| img.tag(:repo => repo, :tag => tag) }
   end
 
   def repo
@@ -168,6 +172,7 @@ class Dockly::Docker
     ensure_present! :name
     if registry.nil?
       ensure_present! :build_dir
+      info "Exporting the image with id #{image.id} to file #{File.expand_path(tar_path)}"
       container = ::Docker::Container.create('Image' => image.id, 'Cmd' => %w[true])
       info "created the container: #{container.id}"
       Zlib::GzipWriter.open(tar_path) do |file|

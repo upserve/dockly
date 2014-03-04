@@ -151,12 +151,11 @@ describe Dockly::BuildCache::Docker, :docker do
     before do
       build_cache.parameter_command command
     end
-    let(:output) { "3.12.9-2-ARCH" }
 
     context "when parameter command returns successfully" do
       let(:command) { "uname -r" }
       it 'returns the output of the parameter_command' do
-        expect(build_cache.parameter_output(command)).to eq(output)
+        expect(build_cache.parameter_output(command)).to match(/\A3\.\d{2}\.\d-\d-ARCH\Z/)
       end
     end
 
