@@ -58,15 +58,20 @@ class Dockly::BuildCache::Base
     file_path = File.join(tmp_dir,file_name)
 
     FileUtils.mkdir_p(File.dirname(file_path))
-    unless File.exist?(file_path)
+    file = unless File.exist?(file_path)
+      debug 'Pulling build cache from s3'
       object = connection.get_object(s3_bucket, file_name)
+      debug 'Pulled build cache from s3'
 
       file = File.open(file_path, 'w+b')
       file.write(object.body)
       file.tap(&:rewind)
     else
+      info 'Build cache already exists locally'
       File.open(file_path, 'rb')
     end
+
+    file
   rescue Excon::Errors::NotFound
     nil
   end
