@@ -10,7 +10,7 @@ module Dockly::BuildCache
     attr_writer :model
 
     def model
-      @mode ||= Dockly::BuildCache::Docker
+      @model ||= Dockly::BuildCache::Docker
     end
   end
 end
