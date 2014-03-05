@@ -73,6 +73,8 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     container = image.run(["/bin/bash", "-lc", "cd #{command_directory} && #{command}"])
     container.attach { |source,chunk| resp += chunk }
     status = container.wait['StatusCode']
+    debug "`#{command}` returned the following output:"
+    debug resp.strip
     debug "`#{command}` exited with status #{status}, resulting container id: #{container.id}"
     [status, resp.strip, container]
   end
