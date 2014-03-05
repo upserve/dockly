@@ -173,7 +173,7 @@ class Dockly::Docker
     if registry.nil?
       ensure_present! :build_dir
       info "Exporting the image with id #{image.id} to file #{File.expand_path(tar_path)}"
-      container = ::Docker::Container.create('Image' => image.id, 'Cmd' => %w[true])
+      container = image.run('true')
       info "created the container: #{container.id}"
       Zlib::GzipWriter.open(tar_path) do |file|
         container.export do |chunk, remaining, total|
