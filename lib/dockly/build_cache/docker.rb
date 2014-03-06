@@ -32,13 +32,14 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
         'Cmd' => ['/bin/bash', '-lc', [
             "mkdir -p #{File.dirname(output_directory)}",
             '&&',
-            "tar -xf #{File.join('/', 'host', path)} -C #{output_directory}"
+            "tar -xf #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
           ].join(' ')
         ],
         'Volumes' => {
-          path_parent => File.join('/', 'host', path_parent)
+          File.join('/', 'host', path_parent) => { path_parent => 'rw' }
         }
-      ).tap(&:start!)
+      )
+      container.start('Binds' => ["#{path_parent}:#{File.join('/', 'host', path_parent)}"])
       result = container.wait['StatusCode']
       raise "Got bad status code when copying build cache: #{result}" unless result.zero?
       self.image = container.commit
