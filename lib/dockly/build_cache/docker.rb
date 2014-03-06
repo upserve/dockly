@@ -25,12 +25,21 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     ensure_present! :output_dir
     if cache = pull_from_s3(version)
       debug "inserting to #{output_directory}"
-      container = image.run("mkdir -p #{File.dirname(output_directory)}")
-      image_with_dir = container.tap(&:wait).commit
-      self.image = image_with_dir.insert_local(
-        'localPath' => cache.path,
-        'outputPath' => File.dirname(output_directory)
-      )
+      container = ::Docker::Container.create(
+        'Image' => image.id,
+        'Cmd' => ['/bin/bash', '-lc', [
+            "mkdir -p #{File.dirname(output_directory)}",
+            '&&',
+            "tar -xf /host/#{cache.path} -C #{output_directory}"
+          ].join(' ')
+        ],
+        'Volumes' => {
+          File.dirname(cache.path) => "/host/#{File.dirname(cache.path)}"
+        }
+      ).tap(&:start!)
+      result = container.wait['StatusCode']
+      raise "Got bad status code when copying build cache: #{result}" unless result.zero?
+      self.image = container.commit
       debug "inserted cache into #{output_directory}"
       cache.close
     else
