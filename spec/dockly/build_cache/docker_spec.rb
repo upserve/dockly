@@ -17,6 +17,7 @@ describe Dockly::BuildCache::Docker, :docker do
     build_cache.build_command 'touch lol'
     build_cache.output_dir '/etc/vim'
     build_cache.base_dir '/'
+    build_cache.keep_old_files true
     docker.build_cache :test_build_cache
   end
 

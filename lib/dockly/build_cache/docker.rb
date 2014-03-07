@@ -27,12 +27,13 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
       debug "inserting to #{output_directory}"
       path = File.expand_path(cache.path)
       path_parent = File.dirname(path)
+      tar_flags = keep_old_files ? '-xfk' : 'xf'
       container = ::Docker::Container.create(
         'Image' => image.id,
         'Cmd' => ['/bin/bash', '-lc', [
             "mkdir -p #{File.dirname(output_directory)}",
             '&&',
-            "tar -xf#{'k' if keep_old_files} #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
+            "tar #{tar_flags} #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
           ].join(' ')
         ],
         'Volumes' => {
