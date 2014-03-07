@@ -8,7 +8,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   end
 
   def run_build
-    status, body, container = run_command(build_command)
+    status, _, container = run_command(build_command)
     raise "Build Cache `#{build_command}` failed to run." unless status.zero?
     cache = copy_output_dir(container)
     debug "pushing #{output_directory} to s3"
@@ -32,7 +32,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
         'Cmd' => ['/bin/bash', '-lc', [
             "mkdir -p #{File.dirname(output_directory)}",
             '&&',
-            "tar -xf #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
+            "tar -xf#{'k' if keep_old_files} #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
           ].join(' ')
         ],
         'Volumes' => {
@@ -63,7 +63,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   def hash_output
     ensure_present! :image, :hash_command
     @hash_output ||= begin
-      status, body, container = run_command(hash_command)
+      status, body, _ = run_command(hash_command)
       raise "Hash Command `#{hash_command}` failed to run" unless status.zero?
       body
     end
@@ -73,7 +73,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     ensure_present! :image
     raise "Parameter Command tried to run but not found" unless parameter_commands.keys.include?(command)
     @parameter_commands[command] ||= begin
-      status, body, container = run_command(command)
+      status, body, _ = run_command(command)
       raise "Parameter Command `#{command}` failed to run" unless status.zero?
       body
     end
