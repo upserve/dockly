@@ -93,10 +93,10 @@ The `build_cache` DSL is used to prevent rebuilding assets every build and used 
     - required: `false`
     - default: `false`
     - description: when using S3, will insert the S3 object tagged as latest in your "s3://s3_bucket/s3_object_prefix" before running the build command to quicken build times
-- `clobber`
+- `keep_old_files`
     - required: `false`
-    - default: `true`
-    - description: if this option is true when using docker, it will overwrite everything in `output_dir`
+    - default: `false`
+    - description: if this option is false when using docker, it will overwrite files that already exist in `output_dir`
 
 `docker`
 --------

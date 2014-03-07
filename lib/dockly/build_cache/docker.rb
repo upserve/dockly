@@ -32,7 +32,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
         'Cmd' => ['/bin/bash', '-lc', [
             "mkdir -p #{File.dirname(output_directory)}",
             '&&',
-            "tar -xf#{'k' unless clobber} #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
+            "tar -xf#{'k' if keep_old_files} #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
           ].join(' ')
         ],
         'Volumes' => {
