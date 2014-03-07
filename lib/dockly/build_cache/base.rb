@@ -8,13 +8,15 @@ class Dockly::BuildCache::Base
 
   dsl_attribute :s3_bucket, :s3_object_prefix, :use_latest,
                 :hash_command, :build_command, :parameter_commands,
-                :base_dir, :command_dir, :output_dir, :tmp_dir
+                :base_dir, :command_dir, :output_dir, :tmp_dir,
+                :clobber
 
   default_value :use_latest, false
   default_value :parameter_commands, {}
   default_value :command_dir, '.'
   default_value :output_dir, '.'
   default_value :tmp_dir, Dir.tmpdir
+  default_value :clobber, true
 
   def execute!
     debug "Looking for cache for hash: #{hash_output}"
