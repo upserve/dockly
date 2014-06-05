@@ -176,7 +176,9 @@ class Dockly::Docker
       container = image.run('true')
       info "created the container: #{container.id}"
       if ENV['SHELL_EXPORT']
-        `docker export #{container.id} | gzip > #{tar_path}`
+        command = "docker export #{container.id} | gzip > #{tar_path}"
+        info "running '#{command}' to export #{container.id}"
+        system(command)
         raise "Could not export image, exit code: #{$?}" unless $?.success?
       else
         Zlib::GzipWriter.open(tar_path) do |file|
