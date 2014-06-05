@@ -175,9 +175,14 @@ class Dockly::Docker
       info "Exporting the image with id #{image.id} to file #{File.expand_path(tar_path)}"
       container = image.run('true')
       info "created the container: #{container.id}"
-      Zlib::GzipWriter.open(tar_path) do |file|
-        container.export do |chunk, remaining, total|
-          file.write(chunk)
+      if ENV['SHELL_EXPORT']
+        `docker export #{container.id} | gzip > #{tar_path}`
+        raise "Could not export image, exit code: #{$?}" unless $?.success?
+      else
+        Zlib::GzipWriter.open(tar_path) do |file|
+          container.export do |chunk, remaining, total|
+            file.write(chunk)
+          end
         end
       end
       info "done writing the docker tar: #{export_filename}"
