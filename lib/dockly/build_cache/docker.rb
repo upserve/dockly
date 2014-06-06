@@ -57,7 +57,11 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     FileUtils.mkdir_p(File.dirname(file_path))
     file = File.open(file_path, 'w+b')
     container.wait(3600) # 1 hour max timeout
-    container.copy(output_directory) { |chunk| file.write(chunk) }
+    debug 'Restarting the container to copy the cache\'s output'
+    # Restart the container so we can copy its output
+    container = container.commit.run('sleep 3600').tap(&:start)
+    container.copy(output_directory) { |chunk| file.write(chunk.to_s) }
+    container.kill
     file.tap(&:rewind)
   end
 
