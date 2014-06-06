@@ -56,14 +56,12 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     file_path = File.join(tmp_dir,s3_object(hash_output))
     FileUtils.mkdir_p(File.dirname(file_path))
     file = File.open(file_path, 'w+b')
-    # Docker only allows copying from running containers. However, we need to
-    # wait for the given container to finish running to get the proper output.
-    # To work around this, we create a new container that sleeps for an hour and
-    # copy from that.
     container.wait(3600) # 1 hour max timeout
-    container_two = container.commit.run('sleep 3600').tap(&:start)
-    container_two.copy(output_directory) { |chunk| file.write(chunk.to_s) }
-    container_two.kill
+    debug 'Restarting the container to copy the cache\'s output'
+    # Restart the container so we can copy its output
+    container = container.commit.run('sleep 3600').tap(&:start)
+    container.copy(output_directory) { |chunk| file.write(chunk.to_s) }
+    container.kill
     file.tap(&:rewind)
   end
 
