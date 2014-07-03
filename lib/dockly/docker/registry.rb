@@ -7,7 +7,7 @@ class Dockly::Docker::Registry
   logger_prefix '[dockly docker registry]'
 
   dsl_attribute :name, :server_address, :email, :username, :password,
-                :authentication_required
+                :authentication_required, :auth_config_file
 
   default_value :server_address, DEFAULT_SERVER_ADDRESS
   default_value :authentication_required, true

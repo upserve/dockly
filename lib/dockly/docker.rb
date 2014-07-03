@@ -17,7 +17,7 @@ class Dockly::Docker
   dsl_class_attribute :registry, Dockly::Docker::Registry
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
-    :timeout, :cleanup_images, :auth_config_file
+    :timeout, :cleanup_images
 
   default_value :tag, nil
   default_value :build_dir, 'build/docker'
@@ -171,6 +171,7 @@ class Dockly::Docker
     end
   end
 
+  # TODO: Push to S3 after diffing
   def export_image(image)
     ensure_present! :name
     if registry.nil?
@@ -178,16 +179,9 @@ class Dockly::Docker
       info "Exporting the image with id #{image.id} to file #{File.expand_path(tar_path)}"
       container = image.run('true')
       info "created the container: #{container.id}"
-      if ENV['SHELL_EXPORT']
-        command = "docker export #{container.id} | gzip > #{tar_path}"
-        info "running '#{command}' to export #{container.id}"
-        system(command)
-        raise "Could not export image, exit code: #{$?}" unless $?.success?
-      else
-        Zlib::GzipWriter.open(tar_path) do |file|
-          container.export do |chunk, remaining, total|
-            file.write(chunk)
-          end
+      Zlib::GzipWriter.open(tar_path) do |file|
+        container.export do |chunk, remaining, total|
+          file.write(chunk)
         end
       end
       info "done writing the docker tar: #{export_filename}"
