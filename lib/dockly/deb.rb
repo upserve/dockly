@@ -9,7 +9,7 @@ class Dockly::Deb
                 :pre_install, :post_install, :pre_uninstall, :post_uninstall,
                 :s3_bucket, :files, :app_user
 
-  dsl_class_attribute :docker, Dockly::Docker
+  dsl_class_attribute :registry, Dockly::Docker::Registry
   dsl_class_attribute :foreman, Dockly::Foreman
 
   default_value :version, '0.0'
@@ -132,11 +132,11 @@ private
   end
 
   def add_docker_auth_config(package)
-    return if docker.nil? || (registry = docker.registry).nil? || !registry.authentication_required?
+    return if registry.nil? || !registry.authentication_required?
     info "adding docker config file"
     registry.generate_config_file!
 
-    package.attributes[:prefix] = docker.auth_config_file || "~#{app_user}/.dockercfg"
+    package.attributes[:prefix] = registry.auth_config_file || "~#{app_user}"
     Dir.chdir(File.dirname(registry.config_file)) do
       package.input(File.basename(registry.config_file))
     end
