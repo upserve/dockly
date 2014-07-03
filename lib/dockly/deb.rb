@@ -87,10 +87,10 @@ private
 
     info "building #{package_name}"
     @dir_package = FPM::Package::Dir.new
-    add_docker(@dir_package)
     add_foreman(@dir_package)
     add_files(@dir_package)
     add_docker_auth_config(@dir_package)
+    # TODO: Add boot.sh file
 
     debug "converting to deb"
     @deb_package = @dir_package.convert(FPM::Package::Deb)
@@ -115,18 +115,6 @@ private
     package.attributes[:prefix] = foreman.init_dir
     Dir.chdir(foreman.build_dir) do
       package.input('.')
-    end
-    package.attributes[:prefix] = nil
-  end
-
-  def add_docker(package)
-    return if docker.nil?
-    info "adding docker image"
-    docker.generate!
-    return unless docker.registry.nil?
-    package.attributes[:prefix] = docker.package_dir
-    Dir.chdir(File.dirname(docker.tar_path)) do
-      package.input(File.basename(docker.tar_path))
     end
     package.attributes[:prefix] = nil
   end
