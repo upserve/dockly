@@ -63,7 +63,7 @@ class Dockly::Deb
 
   def upload_to_s3
     return if s3_bucket.nil?
-    create_package! unless File.exist?(build_path)
+    raise "Package wasn't created!" unless File.exist?(build_path)
     info "uploading package to s3"
     Dockly::AWS.s3.put_bucket(s3_bucket) rescue nil
     Dockly::AWS.s3.put_object(s3_bucket, s3_object_name, File.new(build_path))
