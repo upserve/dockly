@@ -6,85 +6,95 @@ class Dockly::TarDiff
 
   logger_prefix '[dockly tar_diff]'
 
-  attr_reader :base, :target, :output, :target_enum, :base_enum
+  attr_reader :base, :output, :base_enum, :base_data, :target_data
 
-  def initialize(base, target, output)
-    @base, @target, @output = base, target, output
+  attr_accessor :base_data, :target_data, :previous_chunk
 
-    @base_enum = to_enum(:read_header, this.base)
-    @target_enum = to_enum(:read_header, this.target)
+  def initialize(base, output)
+    @previous_chunk = ""
+    @base, @output, @input = base, output, StringIO.new
+
+    @base_data = @target_data = nil
   end
 
-  def skip(target, size)
-    if target.respond_to?(:seek)
-      target.seek(size, IO::SEEK_CUR)
+  def skip(io, size)
+    if io.respond_to?(:seek)
+      io.seek(size, IO::SEEK_CUR)
     else
-      target.read(size)
+      io.read(size)
     end
   end
 
-  def write_tar_section(output, header, size, remainder, target)
+  def write_tar_section(output, header, size, remainder, input)
+    self.target_data = nil
     output.write(header)
-    quick_write(output, size, target)
+    quick_write(output, size, input)
+    skip(input, target_remainder)
     output.write("\0" * remainder)
+    self.previous_chunk = input.read
   end
 
   def quick_write(output, size, target)
     while size > 0
-      bread = read.read([size, 4096].min)
+      bread = target.read([size, 4096].min)
       output.write(bread)
       raise UnexpectedEOF if read.eof?
       size -= bread.size
     end
   end
 
-  def read_header(target)
-    loop do
-      return if target.eof?
+  def read_header(input)
+    return if input.eof?
 
-      # Tar header is 512 bytes large
-      data = target.read(512)
-      fields = data.unpack(HEADER_UNPACK_FORMAT)
-      name = fields[0]
-      size = fields[4].oct
-      mtime = fields[5].oct
-      prefix = fields[15]
+    # Tar header is 512 bytes large
+    data = input.read(512)
+    fields = data.unpack(HEADER_UNPACK_FORMAT)
+    name = fields[0]
+    size = fields[4].oct
+    mtime = fields[5].oct
+    prefix = fields[15]
 
-      empty = (data == "\0" * 512)
-      remainder = (512 - (size % 512)) % 512
+    empty = (data == "\0" * 512)
+    remainder = (512 - (size % 512)) % 512
 
-      yield data, name, prefix, mtime, size, remainder, empty
-
-      skip(target, remainder)
-    end
+    return data, name, prefix, mtime, size, remainder, empty
   end
 
-  def diff_once
-    begin
-      target_header, target_name,  \
-      target_prefix, target_mtime,  \
-      target_size, target_remainder, \
-      target_empty                    = target_enum.peek
-    rescue StopIteration
-      puts "Done with new file"
+  # Convert from enum style with yield to return style:
+  #   - Must be able to allow for less than the size of a full header and full
+  #     file from the input
+  #   - Operate using StringIO
+  def process(raw_input)
+    input = StringIO.new(previous_chunk + raw_input)
+
+    unless target_data || input.size > 512
+      self.previous_chunk = input.read
       return false
     end
 
-    return false if target_empty
+    self.target_data ||= read_header(input)
 
-    begin
-      _, base_name, base_prefix, base_mtime,\
-      base_size, _, base_empty  = base_enum.peek
-    rescue StopIteration
-      puts "Done with base file"
-      write_tar_section(output, target_header, target_size, target_remainder, target)
-      target_enum.next
+    target_header, target_name,  \
+    target_prefix, target_mtime,  \
+    target_size, target_remainder, \
+    target_empty                    = target_data
+
+    if target_empty || (input.length - input.pos) > (target_size + target_remainder)
+      self.previous_chunk = input.read
+      return false
+    end
+
+    if base_data || (base.length - base.pos) > 512
+      self.base_data ||= read_header(base)
+
+      _, base_name, base_prefix, base_mtime, base_size, _, base_empty = base_data
+    else
+      write_tar_section(output, target_header, target_size, target_remainder, input)
       return true
     end
 
     if base_empty
-      write_tar_section(output, target_header, target_size, target_remainder, target)
-      target_enum.next
+      write_tar_section(output, target_header, target_size, target_remainder, input)
       return true
     end
 
@@ -92,27 +102,21 @@ class Dockly::TarDiff
     base_full_name = File.join(base_prefix, base_name)
 
     if (target_full_name < base_full_name)
-      write_tar_section(output, target_header, target_size, target_remainder, target)
-      target_enum.next
+      write_tar_section(output, target_header, target_size, target_remainder, input)
     elsif (base_full_name < target_full_name)
-      skip(base, base_size)
-      base_enum.next
+      skip(base, base_size + base_remainder)
+      self.base_data = nil
+      self.previous_chunk = input.read
     elsif (target_mtime != base_mtime) || (target_size != base_size)
-      write_tar_section(output, target_header, target_size, target_remainder, target)
-      target_enum.next
+      write_tar_section(output, target_header, target_size, target_remainder, input)
     else
-      skip(target, target_size)
-      target_enum.next
-      skip(base, base_size)
-      base_enum.next
+      skip(input, target_size + target_remainder)
+      self.previous_chunk = input.read
+      self.target_data = nil
+      skip(base, base_size + base_remainder)
+      self.base_data = nil
     end
 
     return true
-  end
-
-  def diff
-    loop do
-      break unless diff_once
-    end
   end
 end
