@@ -26,29 +26,36 @@ class Dockly::Docker
   default_value :timeout, 60
 
   def generate!
+    generate_build
+    generate_export
+  ensure
+    cleanup(@images.values.compact) if cleanup_images
+  end
+
+  def generate_build
     Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
-    images = {}
+    @images = {}
 
     if registry_import.nil?
       docker_tar = File.absolute_path(ensure_tar(fetch_import))
-      images[:one] = import_base(docker_tar)
+      @images[:one] = import_base(docker_tar)
     else
       registry.authenticate! unless registry.nil?
       full_name = "#{registry_import[:name]}:#{registry_import[:tag]}"
       info "Pulling #{full_name}"
-      images[:one] = ::Docker::Image.create('fromImage' => registry_import[:name], 'tag' => registry_import[:tag])
+      @images[:one] = ::Docker::Image.create('fromImage' => registry_import[:name], 'tag' => registry_import[:tag])
       info "Successfully pulled #{full_name}"
     end
 
-    images[:two] = add_git_archive(images[:one])
-    images[:three] = run_build_caches(images[:two])
-    images[:four] = build_image(images[:three])
-
-    export_image(images[:four])
-
+    @images[:two] = add_git_archive(@images[:one])
+    @images[:three] = run_build_caches(@images[:two])
+    @images[:four] = build_image(@images[:three])
     true
-  ensure
-    cleanup(images.values.compact) if cleanup_images
+  end
+
+  def generate_export
+    export_image(@images[:four])
+    true
   end
 
   def registry_import(img_name = nil, opts = {})
@@ -61,16 +68,16 @@ class Dockly::Docker
     end
   end
 
-  def cleanup(images)
+  def cleanup(@images)
     info 'Cleaning up intermediate images'
     ::Docker::Container.all(:all => true).each do |container|
       image_id = container.json['Image']
-      if images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
+      if @images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
         container.kill
         container.delete
       end
     end
-    images.each { |image| image.remove rescue nil }
+    @images.each { |image| image.remove rescue nil }
     info 'Done cleaning images'
   end
 
