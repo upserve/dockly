@@ -28,6 +28,7 @@ class Dockly::Docker
   def generate!
     generate_build
     generate_export
+    true
   ensure
     cleanup(@images.values.compact) if cleanup_images
   end
@@ -50,12 +51,10 @@ class Dockly::Docker
     @images[:two] = add_git_archive(@images[:one])
     @images[:three] = run_build_caches(@images[:two])
     @images[:four] = build_image(@images[:three])
-    true
   end
 
   def generate_export
     export_image(@images[:four])
-    true
   end
 
   def registry_import(img_name = nil, opts = {})
@@ -68,16 +67,16 @@ class Dockly::Docker
     end
   end
 
-  def cleanup(@images)
+  def cleanup(images)
     info 'Cleaning up intermediate images'
     ::Docker::Container.all(:all => true).each do |container|
       image_id = container.json['Image']
-      if @images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
+      if images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
         container.kill
         container.delete
       end
     end
-    @images.each { |image| image.remove rescue nil }
+    images.each { |image| image.remove rescue nil }
     info 'Done cleaning images'
   end
 
