@@ -1,14 +1,34 @@
 require 'pry'
 require 'dockly'
 
-base = File.open('swipely.tar', 'rb')
-output = File.open('output.tar', 'wb')
+rd, wr = IO.pipe(Encoding::ASCII_8BIT)
 
-td = Dockly::TarDiff.new(base, output)
+if fork
+  begin
+    wr.close
 
-c = Docker::Container.create('Image' => 'swipely', 'Cmd' => 'true')
-c.start
-c.export do |chunk|
-  td.set_chunk(chunk)
-  while td.process; end
+    base = File.open('swipely.tar', 'rb')
+    output = File.open('output.tar', 'wb')
+
+    td = Dockly::TarDiff.new(base, rd, output)
+    td.process
+
+    puts "Guess I'm done processing!!!"
+    puts "Here's what's left: #{rd.read}"
+  ensure
+    rd.close
+  end
+else
+  begin
+    rd.close
+
+    c = Docker::Container.create('Image' => 'swipely', 'Cmd' => 'true')
+    c.start
+    c.export do |chunk|
+      wr.write(chunk)
+    end
+  ensure
+    wr.close
+  end
 end
+
