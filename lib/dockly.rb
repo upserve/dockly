@@ -14,6 +14,7 @@ module Dockly
   autoload :BuildCache, 'dockly/build_cache'
   autoload :Docker, 'dockly/docker'
   autoload :Deb, 'dockly/deb'
+  autoload :TarDiff, 'dockly/tar_diff'
 
   LOAD_FILE = 'dockly.rb'
 

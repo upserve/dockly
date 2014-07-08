@@ -28,26 +28,21 @@ class Dockly::TarDiff
   def write_tar_section(output, header, size, remainder, input)
     self.target_data = nil
     output.write(header)
-    quick_write(output, size, input)
-    skip(input, target_remainder)
-    output.write("\0" * remainder)
-    self.previous_chunk = input.read
+    output.write(input.slice!(0, size + remainder))
+    self.previous_chunk = input
   end
 
-  def quick_write(output, size, target)
+  def quick_write(output, target)
+    size = target.size
     while size > 0
-      bread = target.read([size, 4096].min)
+      bread = target.slice!(0, [size, 4096].min)
       output.write(bread)
-      raise UnexpectedEOF if read.eof?
       size -= bread.size
     end
   end
 
-  def read_header(input)
-    return if input.eof?
-
+  def read_header(data)
     # Tar header is 512 bytes large
-    data = input.read(512)
     fields = data.unpack(HEADER_UNPACK_FORMAT)
     name = fields[0]
     size = fields[4].oct
@@ -60,40 +55,43 @@ class Dockly::TarDiff
     return data, name, prefix, mtime, size, remainder, empty
   end
 
-  # Convert from enum style with yield to return style:
-  #   - Must be able to allow for less than the size of a full header and full
-  #     file from the input
-  #   - Operate using StringIO
-  def process(raw_input)
-    input = StringIO.new(previous_chunk + raw_input)
+  def set_chunk(raw_input)
+    self.previous_chunk = previous_chunk + raw_input
+  end
 
-    unless target_data || input.size > 512
-      self.previous_chunk = input.read
-      return false
-    end
+  def process
+    input = previous_chunk.dup
 
-    self.target_data ||= read_header(input)
+    if target_data || input.size >= 512
+      self.target_data ||= read_header(input.slice!(0, 512))
 
-    target_header, target_name,  \
-    target_prefix, target_mtime,  \
-    target_size, target_remainder, \
-    target_empty                    = target_data
-
-    if target_empty || (input.length - input.pos) > (target_size + target_remainder)
-      self.previous_chunk = input.read
-      return false
-    end
-
-    if base_data || (base.length - base.pos) > 512
-      self.base_data ||= read_header(base)
-
-      _, base_name, base_prefix, base_mtime, base_size, _, base_empty = base_data
+      target_header, target_name,  \
+      target_prefix, target_mtime,  \
+      target_size, target_remainder, \
+      target_empty                    = target_data
     else
+      #puts "Size is too small"
+      self.previous_chunk = input
+      return false
+    end
+
+    if target_empty || input.size < (target_size + target_remainder)
+      self.previous_chunk = input
+      return false
+    end
+
+    if base_data || (base.size - base.pos) >= 512
+      self.base_data ||= read_header(base.read(512))
+
+      _, base_name, base_prefix, base_mtime, base_size, base_remainder, base_empty = base_data
+    else
+      #puts "Base is empty"
       write_tar_section(output, target_header, target_size, target_remainder, input)
       return true
     end
 
     if base_empty
+      #puts "Base is actually empty"
       write_tar_section(output, target_header, target_size, target_remainder, input)
       return true
     end
@@ -101,17 +99,20 @@ class Dockly::TarDiff
     target_full_name = File.join(target_prefix, target_name)
     base_full_name = File.join(base_prefix, base_name)
 
+    target_full_name = target_full_name[1..-1] if target_full_name[0] == '/'
+    base_full_name = base_full_name[1..-1] if base_full_name[0] == '/'
+
     if (target_full_name < base_full_name)
       write_tar_section(output, target_header, target_size, target_remainder, input)
     elsif (base_full_name < target_full_name)
       skip(base, base_size + base_remainder)
+      self.previous_chunk = input
       self.base_data = nil
-      self.previous_chunk = input.read
     elsif (target_mtime != base_mtime) || (target_size != base_size)
       write_tar_section(output, target_header, target_size, target_remainder, input)
     else
-      skip(input, target_size + target_remainder)
-      self.previous_chunk = input.read
+      input.slice!(0, target_size + target_remainder)
+      self.previous_chunk = input
       self.target_data = nil
       skip(base, base_size + base_remainder)
       self.base_data = nil
