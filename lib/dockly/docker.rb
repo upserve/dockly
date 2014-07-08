@@ -27,7 +27,7 @@ class Dockly::Docker
 
   def generate!
     image = generate_build
-    generate_export(image)
+    export_image(image)
   ensure
     cleanup([image]) if cleanup_images
   end
@@ -52,10 +52,6 @@ class Dockly::Docker
     build_image(images[:three])
   ensure
     cleanup(images.values.compact) if cleanup_images
-  end
-
-  def generate_export
-    export_image(@images[:four])
   end
 
   def registry_import(img_name = nil, opts = {})
