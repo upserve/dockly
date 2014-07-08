@@ -26,31 +26,32 @@ class Dockly::Docker
   default_value :timeout, 60
 
   def generate!
-    generate_build
-    generate_export
-    true
+    image = generate_build
+    generate_export(image)
   ensure
-    cleanup(@images.values.compact) if cleanup_images
+    cleanup([image]) if cleanup_images
   end
 
   def generate_build
     Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
-    @images = {}
+    images = {}
 
     if registry_import.nil?
       docker_tar = File.absolute_path(ensure_tar(fetch_import))
-      @images[:one] = import_base(docker_tar)
+      images[:one] = import_base(docker_tar)
     else
       registry.authenticate! unless registry.nil?
       full_name = "#{registry_import[:name]}:#{registry_import[:tag]}"
       info "Pulling #{full_name}"
-      @images[:one] = ::Docker::Image.create('fromImage' => registry_import[:name], 'tag' => registry_import[:tag])
+      images[:one] = ::Docker::Image.create('fromImage' => registry_import[:name], 'tag' => registry_import[:tag])
       info "Successfully pulled #{full_name}"
     end
 
-    @images[:two] = add_git_archive(@images[:one])
-    @images[:three] = run_build_caches(@images[:two])
-    @images[:four] = build_image(@images[:three])
+    images[:two] = add_git_archive(images[:one])
+    images[:three] = run_build_caches(images[:two])
+    build_image(images[:three])
+  ensure
+    cleanup(images.values.compact) if cleanup_images
   end
 
   def generate_export
