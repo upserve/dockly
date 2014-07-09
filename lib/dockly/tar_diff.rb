@@ -9,19 +9,10 @@ class Dockly::TarDiff
   attr_reader :base, :output, :target, :base_enum, :target_enum
 
   def initialize(base, target, output)
-    @previous_chunk = ""
     @base, @target, @output = base, target, output
 
     @base_enum = to_enum(:read_header, base)
     @target_enum = to_enum(:read_header, target)
-  end
-
-  def skip(io, size)
-    #if io.respond_to?(:seek)
-    #  io.seek(size, IO::SEEK_CUR)
-    #else
-      io.read(size)
-    #end
   end
 
   def write_tar_section(output, header, size, remainder, input)
@@ -53,11 +44,12 @@ class Dockly::TarDiff
 
       yield data, name, prefix, mtime, size, remainder, empty
 
-      skip(io, remainder)
+      io.read(remainder)
     end
   end
 
   def process
+    debug "Started processing tar diff"
     loop do
       begin
         target_header, target_name,  \
@@ -65,12 +57,12 @@ class Dockly::TarDiff
         target_size, target_remainder, \
         target_empty                    = target_enum.peek
       rescue StopIteration
-        puts "Finished target file"
+        debug "Finished target file"
         break
       end
 
       if target_empty
-        puts "End of target file/Empty"
+        debug "End of target file/Empty"
         break
       end
 
@@ -94,21 +86,19 @@ class Dockly::TarDiff
       target_full_name = target_full_name[1..-1] if target_full_name[0] == '/'
       base_full_name = base_full_name[1..-1] if base_full_name[0] == '/'
 
-      #puts "Checking: #{target_full_name} versus #{base_full_name}"
-
       if (target_full_name < base_full_name)
         write_tar_section(output, target_header, target_size, target_remainder, target)
         target_enum.next
       elsif (base_full_name < target_full_name)
-        skip(base, base_size)
+        base.read(base_size)
         base_enum.next
       elsif (target_mtime != base_mtime) || (target_size != base_size)
         write_tar_section(output, target_header, target_size, target_remainder, target)
         target_enum.next
       else
-        skip(target, target_size)
+        target.read(target_size)
         target_enum.next
-        skip(base, base_size)
+        base.read(base_size)
         base_enum.next
       end
     end
