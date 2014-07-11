@@ -9,6 +9,7 @@ class Dockly::Deb
                 :pre_install, :post_install, :pre_uninstall, :post_uninstall,
                 :s3_bucket, :files, :app_user
 
+  dsl_class_attribute :docker, Dockly::Docker
   dsl_class_attribute :registry, Dockly::Docker::Registry
   dsl_class_attribute :foreman, Dockly::Foreman
 
@@ -90,6 +91,7 @@ private
     add_foreman(@dir_package)
     add_files(@dir_package)
     add_docker_auth_config(@dir_package)
+    add_docker(@dir_package)
     # TODO: Add boot.sh file
 
     debug "converting to deb"
@@ -132,13 +134,25 @@ private
   end
 
   def add_docker_auth_config(package)
-    return if registry.nil? || !registry.authentication_required?
+    return if (registry.nil? && (docker.nil? || (registry = docker.registry).nil?)) || !registry.authentication_required?
     info "adding docker config file"
     registry.generate_config_file!
 
     package.attributes[:prefix] = registry.auth_config_file || "~#{app_user}"
     Dir.chdir(File.dirname(registry.config_file)) do
       package.input(File.basename(registry.config_file))
+    end
+    package.attributes[:prefix] = nil
+  end
+
+  def add_docker(package)
+    return if docker.nil?
+    info "adding docker image"
+    docker.generate!
+    return unless registry.nil? && docker.registry.nil?
+    package.attributes[:prefix] = docker.package_dir
+    Dir.chdir(File.dirname(docker.tar_path)) do
+      package.input(File.basename(docker.tar_path))
     end
     package.attributes[:prefix] = nil
   end
