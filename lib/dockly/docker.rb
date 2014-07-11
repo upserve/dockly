@@ -17,13 +17,16 @@ class Dockly::Docker
   dsl_class_attribute :registry, Dockly::Docker::Registry
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
-    :timeout, :cleanup_images
+    :timeout, :cleanup_images, :tar_diff, :s3_bucket, :s3_object_prefix
 
   default_value :tag, nil
   default_value :build_dir, 'build/docker'
   default_value :package_dir, '/opt/docker'
   default_value :cleanup_images, false
   default_value :timeout, 60
+  default_value :tar_diff, false
+  default_value :s3_bucket, nil
+  default_value :s3_object_prefix, ""
 
   def generate!
     image = generate_build
@@ -171,7 +174,6 @@ class Dockly::Docker
     end
   end
 
-  # TODO: Push to S3 after diffing
   def export_image(image)
     ensure_present! :name
     if registry.nil?
@@ -179,15 +181,72 @@ class Dockly::Docker
       info "Exporting the image with id #{image.id} to file #{File.expand_path(tar_path)}"
       container = image.run('true')
       info "created the container: #{container.id}"
-      Zlib::GzipWriter.open(tar_path) do |file|
-        container.export do |chunk, remaining, total|
-          file.write(chunk)
-        end
+
+      unless s3_bucket.nil?
+        output = Dockly::AWS::S3Writer.new(connection, s3_bucket, s3_object)
+      else
+        output = File.open(tar_path, 'wb')
       end
-      info "done writing the docker tar: #{export_filename}"
+
+      if tar_diff
+        export_image_diff(container, output)
+      else
+        export_image_whole(container, output)
+      end
     else
       push_to_registry(image)
     end
+  ensure
+    if output && !s3_bucket.nil?
+      output.abort_unless_closed
+    end
+  end
+
+  def export_image_whole(container, output)
+    file = Zlib::GzipWriter.new(output)
+    container.export do |chunk, remaining, total|
+      file.write(chunk)
+    end
+  ensure
+    file.close
+  end
+
+  def export_image_diff(container, output)
+    rd, wr = IO.pipe(Encoding::ASCII_8BIT)
+
+    if fork
+      begin
+        wr.close
+
+        file = Zlib::GzipWriter.new(output)
+        File.open(fetch_import, 'rb') do |base|
+          td = Dockly::TarDiff.new(base, rd, file)
+          td.process
+        end
+        s3writer.close
+        info "done writing the docker tar: #{export_filename}"
+      ensure
+        file.close if file
+        rd.close
+        Process.wait
+      end
+    else
+      begin
+        rd.close
+
+        container.export do |chunk, remaining, total|
+          wr.write(chunk)
+        end
+      ensure
+        wr.close
+      end
+    end
+  end
+
+  def s3_object
+    output = "#{s3_object_prefix}"
+    output << "#{Dockly::Util::Git.git_sha}/"
+    output << "#{export_filename}"
   end
 
   def push_to_registry(image)
