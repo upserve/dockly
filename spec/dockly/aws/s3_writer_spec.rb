@@ -24,6 +24,25 @@ describe Dockly::AWS::S3Writer do
     end
   end
 
+  describe "#upload_buffer" do
+    let(:message) { "message" }
+    let(:upload_response) { double(:upload_response) }
+    let(:etag) { "test" }
+
+    before do
+      connection.should_receive(:upload_part).with(bucket, object, upload_id, 1, message) do
+        upload_response
+      end
+      upload_response.stub(:headers) { { "ETag" => etag } }
+      subject.instance_variable_set(:"@buffer", message)
+    end
+
+    it "connects to S3" do
+      subject.upload_buffer
+      expect(subject.instance_variable_get(:"@parts")).to include(etag)
+    end
+  end
+
   describe "#write" do
     let(:message) { "a" * chunk_length }
 
@@ -31,7 +50,7 @@ describe Dockly::AWS::S3Writer do
       let(:chunk_length) { 100 }
       
       before do
-        connection.should_not_receive(:upload_part)
+        subject.should_not_receive(:upload_buffer)
       end
 
       it "adds it to the buffer and returns the chunk length" do
@@ -42,20 +61,13 @@ describe Dockly::AWS::S3Writer do
 
     context "with a buffer of greater than 5 MB"  do
       let(:chunk_length) { 1 + 5 * 1024 * 1024 }
-      let(:write_response) { double(:response) }
-      let(:etag) { "test" }
 
       before do
-        connection.should_receive(:upload_part).with(bucket, object, upload_id, 1, message) do
-          write_response
-        end
-        write_response.stub(:headers) { { "ETag" => etag } }
+        subject.should_receive(:upload_buffer)
       end
 
       it "adds it to the buffer, writes to S3 and returns the chunk length" do
         expect(subject.write(message)).to eq(chunk_length)
-        expect(subject.instance_variable_get(:"@buffer")).to be_empty
-        expect(subject.instance_variable_get(:"@parts").last).to eq(etag)
       end
     end
   end
@@ -74,8 +86,25 @@ describe Dockly::AWS::S3Writer do
         complete_response.stub(:body) { {} }
       end
 
-      it "closes the connection" do
-        expect(subject.close).to be_true
+      context "when the buffer is not empty" do
+        before do
+          subject.instance_variable_set(:"@buffer", "text")
+          subject.should_receive(:upload_buffer)
+        end
+
+        it "uploads the rest of the buffer and closes the connection" do
+          expect(subject.close).to be_true
+        end
+      end
+
+      context "when the buffer is empty" do
+        before do
+          subject.should_not_receive(:upload_buffer)
+        end
+
+        it "closes the connection" do
+          expect(subject.close).to be_true
+        end
       end
     end
 

@@ -20,20 +20,24 @@ module Dockly
         @upload_id = init_upload_res.body['UploadId']
       end
 
+      def upload_buffer
+        res = connection.upload_part(s3_bucket, s3_object, upload_id, @parts.size + 1, buffer)
+        @parts << res.headers["ETag"]
+        debug "Writing a chunk"
+        @buffer = ""
+      end
+
       def write(chunk)
         self.buffer << chunk
 
-        if buffer.bytesize > 5242880
-          res = connection.upload_part(s3_bucket, s3_object, upload_id, @parts.size + 1, buffer)
-          @parts << res.headers["ETag"]
-          debug "Writing a chunk"
-          @buffer = ""
-        end
+        upload_buffer if buffer.bytesize > 5242880
 
         chunk.length
       end
 
       def close
+        upload_buffer unless buffer.empty?
+
         res = connection.complete_multipart_upload(s3_bucket, s3_object, upload_id, @parts)
         if res.body['Code'] || res.body['Message']
           raise "Failed to upload to S3: #{res.body['Code']}: #{res.body['Message']}"
