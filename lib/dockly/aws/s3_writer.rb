@@ -36,6 +36,7 @@ module Dockly
       end
 
       def close
+        return if @closed
         upload_buffer unless buffer.empty?
 
         res = connection.complete_multipart_upload(s3_bucket, s3_object, upload_id, @parts)
@@ -51,6 +52,7 @@ module Dockly
 
       def abort_unless_closed
         abort unless @closed
+        @closed = true
       end
     end
   end
