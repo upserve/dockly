@@ -71,11 +71,12 @@ describe Dockly::Deb do
           git_archive '.'
           build 'touch /deb_worked'
           build_dir 'build/docker'
-          auth_config_file '/etc/docker/.dockercfg'
 
           registry :test_docker_registry do
-            username 'nahiluhmot'
-            email 'hulihan.tom159@gmail.com'
+            auth_config_file '/etc/docker/.dockercfg'
+            username 'tlunter'
+            email 'tlunter@gmail.com'
+            password '******'
           end
         end
       end
@@ -191,9 +192,8 @@ describe Dockly::Deb do
       context 'when the package has yet to be created' do
         before { FileUtils.rm(subject.build_path) rescue nil }
 
-        it 'creates it' do
-          subject.should_receive(:create_package!).and_call_original
-          subject.upload_to_s3
+        it 'raises an error' do
+          expect { subject.upload_to_s3 }.to raise_error
         end
       end
 

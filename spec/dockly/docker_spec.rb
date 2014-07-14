@@ -84,7 +84,7 @@ describe Dockly::Docker do
       subject.build "run touch /lol"
       image = subject.build_image(image)
       container = Docker::Container.create('Image' => image.id, 'Cmd' => ['ls', '-1', '/'])
-      output = container.tap(&:start).attach
+      output = container.tap(&:start).attach(logs: true)
       output[0].grep(/lol/).should_not be_empty
       # TODO: stop resetting the connection, once no longer necessary after attach
       Docker.reset_connection!
@@ -147,6 +147,105 @@ describe Dockly::Docker do
     end
   end
 
+  describe "#export_image", :docker do
+    let(:image) { Docker::Image.create('fromImage' => 'base') }
+
+    context "with a registry export" do
+      let(:registry) { double(:registry) }
+      before do
+        subject.instance_variable_set(:"@registry", registry)
+        expect(subject).to receive(:push_to_registry)
+      end
+
+      it "pushes the image to the registry" do
+        subject.export_image(image)
+      end
+    end
+
+    context "with an S3 export" do
+      let(:export) { double(:export) }
+      before do
+        expect(Dockly::AWS::S3Writer).to receive(:new).and_return(export)
+        expect(export).to receive(:write).once
+        expect(export).to receive(:close).once
+        subject.s3_bucket "test-bucket"
+      end
+
+      context "and a whole export" do
+        before do
+          expect(subject).to receive(:export_image_whole)
+        end
+
+        it "exports the whole image" do
+          subject.export_image(image)
+        end
+      end
+
+      context "and a diff export" do
+        before do
+          subject.tar_diff true
+          expect(subject).to receive(:export_image_diff)
+        end
+
+        it "exports the diff image" do
+          subject.export_image(image)
+        end
+      end
+    end
+
+    context "with a file export" do
+      let(:export) { double(:export) }
+      before do
+        expect(File).to receive(:open).and_return(export)
+        expect(export).to receive(:write).once
+        expect(export).to receive(:close)
+      end
+
+      context "and a whole export" do
+        before do
+          expect(subject).to receive(:export_image_whole)
+        end
+
+        it "exports the whole image" do
+          subject.export_image(image)
+        end
+      end
+
+      context "and a diff export" do
+        before do
+          subject.tar_diff true
+          expect(subject).to receive(:export_image_diff)
+        end
+
+        it "exports the diff image" do
+          subject.export_image(image)
+        end
+      end
+    end
+  end
+
+  describe '#export_image_diff', :docker do
+    let(:output) { StringIO.new }
+    before do
+      subject.instance_eval do
+        import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-test.tgz'
+        build "run touch /it_worked"
+        repository "dockly_export_image_diff"
+      end
+    end
+
+    it "should export only the tar with the new file" do
+      docker_tar = File.absolute_path(subject.ensure_tar(subject.fetch_import))
+      image = subject.import_base(docker_tar)
+      image = subject.build_image(image)
+      container = image.run('true').tap { |c| c.wait(10) }
+      subject.export_image_diff(container, output)
+
+      expect(output.string).to include('it_worked')
+      expect(output.string).to_not include('bin')
+    end
+  end
+
   describe '#generate!', :docker do
     let(:docker_file) { 'build/docker/dockly_test-image.tgz' }
     before { FileUtils.rm_rf(docker_file) }
@@ -162,6 +261,7 @@ describe Dockly::Docker do
           cleanup_images false
         end
       end
+
       it 'builds a docker image' do
         expect {
           subject.generate!
@@ -220,8 +320,9 @@ describe Dockly::Docker do
           build_dir 'build/docker'
 
           registry do
-            username 'nahiluhmot'
-            email 'tomhulihan@swipely.com'
+            username 'tlunter'
+            email 'tlunter@gmail.com'
+            password '******'
           end
         end
       }
