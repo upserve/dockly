@@ -188,58 +188,56 @@ class Dockly::Docker
         output = File.open(tar_path, 'wb')
       end
 
+      gzip_output = Zlib::GzipWriter.new(output)
+
       if tar_diff
-        export_image_diff(container, output)
+        export_image_diff(container, gzip_output)
       else
-        export_image_whole(container, output)
+        export_image_whole(container, gzip_output)
       end
     else
       push_to_registry(image)
     end
-  ensure
+  rescue
     if output && !s3_bucket.nil?
       output.abort_unless_closed
     end
+  ensure
+    gzip_output.close if gzip_output
   end
 
   def export_image_whole(container, output)
-    file = Zlib::GzipWriter.new(output)
     container.export do |chunk, remaining, total|
-      file.write(chunk)
+      output.write(chunk)
     end
-  ensure
-    file.close
   end
 
   def export_image_diff(container, output)
     rd, wr = IO.pipe(Encoding::ASCII_8BIT)
 
-    if fork
+    thread = Thread.new do
       begin
-        wr.close
-
-        file = Zlib::GzipWriter.new(output)
-        File.open(fetch_import, 'rb') do |base|
-          td = Dockly::TarDiff.new(base, rd, file)
-          td.process
+        if Dockly::Util::Tar.is_tar?(fetch_import)
+          base = File.open(fetch_import, 'rb')
+        else
+          base = Zlib::GzipReader.new(File.open(fetch_import, 'rb'))
         end
-        s3writer.close
+        td = Dockly::TarDiff.new(base, rd, output)
+        td.process
         info "done writing the docker tar: #{export_filename}"
       ensure
-        file.close if file
+        base.close if base
         rd.close
-        Process.wait
       end
-    else
-      begin
-        rd.close
+    end
 
-        container.export do |chunk, remaining, total|
-          wr.write(chunk)
-        end
-      ensure
-        wr.close
+    begin
+      container.export do |chunk, remaining, total|
+        wr.write(chunk)
       end
+    ensure
+      wr.close
+      thread.join
     end
   end
 
