@@ -44,7 +44,7 @@ describe Dockly::TarDiff do
 
   describe "#read_header" do
     let(:input) { File.open("spec/fixtures/test-3.tar") }
-    
+
     it "with a tar with 2 files should yield exactly four times; 2 files + 2 512 byte null blocks" do
       expect do |b|
         block = b.to_proc
@@ -52,7 +52,7 @@ describe Dockly::TarDiff do
           block.call(*args)
 
           data, name, prefix, mtime, size, remainder, empty = args
-          
+
           case b.num_yields
           when 1
             expect(name).to be == "Rakefile"

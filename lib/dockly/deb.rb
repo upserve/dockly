@@ -134,7 +134,9 @@ private
   end
 
   def add_docker_auth_config(package)
-    return if (registry.nil? && (docker.nil? || (registry = docker.registry).nil?)) || !registry.authentication_required?
+    return if (registry.nil? && \
+               (docker.nil? || (registry = docker.registry).nil?)) \
+              || !registry.authentication_required?
     info "adding docker config file"
     registry.generate_config_file!
 

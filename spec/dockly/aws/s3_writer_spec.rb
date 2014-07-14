@@ -48,7 +48,7 @@ describe Dockly::AWS::S3Writer do
 
     context "with a buffer of less than 5 MB" do
       let(:chunk_length) { 100 }
-      
+
       before do
         subject.should_not_receive(:upload_buffer)
       end
@@ -145,7 +145,7 @@ describe Dockly::AWS::S3Writer do
       before do
         subject.should_receive(:abort)
       end
-      
+
       it "aborts the upload" do
         subject.abort_unless_closed
       end
