@@ -174,6 +174,10 @@ class Dockly::Docker
     end
   end
 
+  def s3_url
+    "s3://#{s3_bucket}/#{s3_object}"
+  end
+
   def export_image(image)
     ensure_present! :name
     if registry.nil?
