@@ -6,17 +6,17 @@ class Dockly::Deb
 
   logger_prefix '[dockly deb]'
   dsl_attribute :package_name, :version, :release, :arch, :build_dir,
-                :pre_install, :post_install, :pre_uninstall, :post_uninstall,
-                :s3_bucket, :files, :app_user
+                :deb_build_dir, :pre_install, :post_install, :pre_uninstall,
+                :post_uninstall, :s3_bucket, :files, :app_user
 
   dsl_class_attribute :docker, Dockly::Docker
-  dsl_class_attribute :registry, Dockly::Docker::Registry
   dsl_class_attribute :foreman, Dockly::Foreman
 
   default_value :version, '0.0'
   default_value :release, '0'
   default_value :arch, 'x86_64'
-  default_value :build_dir, 'build/deb'
+  default_value :build_dir, 'build'
+  default_value :deb_build_dir, 'deb'
   default_value :files, []
   default_value :app_user, 'nobody'
 
@@ -25,8 +25,8 @@ class Dockly::Deb
   end
 
   def create_package!
-    ensure_present! :build_dir
-    FileUtils.mkdir_p(build_dir)
+    ensure_present! :build_dir, :deb_build_dir
+    FileUtils.mkdir_p(File.join(build_dir, deb_build_dir))
     FileUtils.rm(build_path) if File.exist?(build_path)
     debug "exporting #{package_name} to #{build_path}"
     build_package
@@ -47,8 +47,8 @@ class Dockly::Deb
   end
 
   def build_path
-    ensure_present! :build_dir
-    "#{build_dir}/#{output_filename}"
+    ensure_present! :build_dir, :deb_build_dir
+    File.join(build_dir, deb_build_dir, output_filename)
   end
 
   def exists?
@@ -82,6 +82,15 @@ class Dockly::Deb
     "#{package_name}_#{version}.#{release}_#{arch}.deb"
   end
 
+  def startup_script
+    scripts = []
+    bb = Dockly::BashBuilder.new
+    scripts << bb.normalize_for_dockly
+    scripts << bb.get_and_install_deb(s3_url, "/opt/dockly/#{File.basename(s3_url)}")
+
+    scripts.join("\n")
+  end
+
 private
   def build_package
     ensure_present! :package_name, :version, :release, :arch
@@ -92,7 +101,7 @@ private
     add_files(@dir_package)
     add_docker_auth_config(@dir_package)
     add_docker(@dir_package)
-    # TODO: Add boot.sh file
+    add_startup_script(@dir_package)
 
     debug "converting to deb"
     @deb_package = @dir_package.convert(FPM::Package::Deb)
@@ -134,9 +143,7 @@ private
   end
 
   def add_docker_auth_config(package)
-    return if (registry.nil? && \
-               (docker.nil? || (registry = docker.registry).nil?)) \
-              || !registry.authentication_required?
+    return if (registry = get_registry).nil? || !registry.authentication_required?
     info "adding docker config file"
     registry.generate_config_file!
 
@@ -148,13 +155,56 @@ private
   end
 
   def add_docker(package)
-    return if docker.nil?
+    return if docker.nil? || docker.s3_bucket
     info "adding docker image"
     docker.generate!
     return unless registry.nil? && docker.registry.nil?
     package.attributes[:prefix] = docker.package_dir
     Dir.chdir(File.dirname(docker.tar_path)) do
       package.input(File.basename(docker.tar_path))
+    end
+    package.attributes[:prefix] = nil
+  end
+
+  def get_registry
+    if docker && registry = docker.registry
+      registry
+    end
+  end
+
+  def post_startup_script
+    scripts = []
+    bb = Dockly::BashBuilder.new
+    scripts << bb.normalize_for_dockly
+    if get_registry
+      scripts << bb.registry_import(docker.repo, docker.tag)
+    elsif docker.s3_bucket.nil?
+      docker_output = File.join(docker.package_dir, File.basename(docker.tar_path))
+      if docker.tar_diff
+        scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
+      else
+        scripts << bb.file_docker_import(docker_output, docker.name, docker.tag)
+      end
+    else
+      if docker.tar_diff
+        scripts << bb.s3_diff_docker_import(docker.import, docker.s3_url, docker.name, docker.tag)
+      else
+        scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
+      end
+    end
+    scripts.join("\n")
+  end
+
+  def add_startup_script(package)
+    ensure_present! :build_dir
+    startup_script_path = File.join(build_dir, "dockly-startup.sh")
+    File.open(startup_script_path, 'w+') do |f|
+      f.write(post_startup_script)
+      f.chmod(0755)
+    end
+    package.attributes[:prefix] = "/opt/dockly"
+    Dir.chdir(build_dir) do
+      package.input("dockly-startup.sh")
     end
     package.attributes[:prefix] = nil
   end
