@@ -11,6 +11,7 @@ module Dockly
 
   autoload :AWS, 'dockly/aws'
   autoload :Foreman, 'dockly/foreman'
+  autoload :BashBuilder, 'dockly/bash_builder'
   autoload :BuildCache, 'dockly/build_cache'
   autoload :Docker, 'dockly/docker'
   autoload :Deb, 'dockly/deb'
