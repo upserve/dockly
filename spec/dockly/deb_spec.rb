@@ -10,7 +10,7 @@ describe Dockly::Deb do
         release '8'
         pre_install "ls"
         post_install "rd /s /q C:\*"
-        build_dir 'build/deb'
+        build_dir 'build'
       end
     end
     let(:filename) { "build/deb/my-sweet-deb_77.0.8_x86_64.deb" }

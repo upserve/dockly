@@ -158,7 +158,7 @@ private
     return if docker.nil? || docker.s3_bucket
     info "adding docker image"
     docker.generate!
-    return unless registry.nil? && docker.registry.nil?
+    return unless docker.registry.nil?
     package.attributes[:prefix] = docker.package_dir
     Dir.chdir(File.dirname(docker.tar_path)) do
       package.input(File.basename(docker.tar_path))
@@ -178,18 +178,20 @@ private
     scripts << bb.normalize_for_dockly
     if get_registry
       scripts << bb.registry_import(docker.repo, docker.tag)
-    elsif docker.s3_bucket.nil?
-      docker_output = File.join(docker.package_dir, File.basename(docker.tar_path))
-      if docker.tar_diff
-        scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
+    elsif docker
+      if docker.s3_bucket.nil?
+        docker_output = File.join(docker.package_dir, File.basename(docker.tar_path))
+        if docker.tar_diff
+          scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
+        else
+          scripts << bb.file_docker_import(docker_output, docker.name, docker.tag)
+        end
       else
-        scripts << bb.file_docker_import(docker_output, docker.name, docker.tag)
-      end
-    else
-      if docker.tar_diff
-        scripts << bb.s3_diff_docker_import(docker.import, docker.s3_url, docker.name, docker.tag)
-      else
-        scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
+        if docker.tar_diff
+          scripts << bb.s3_diff_docker_import(docker.import, docker.s3_url, docker.name, docker.tag)
+        else
+          scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
+        end
       end
     end
     scripts.join("\n")
