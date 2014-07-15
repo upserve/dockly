@@ -1,0 +1,1 @@
+cat <%= data[:path] %> | gunzip -c | <%= docker_import(data[:repo], data[:tag]) %>
