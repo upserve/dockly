@@ -12,7 +12,7 @@ describe Dockly::BashBuilder do
 
   describe "#get_from_s3" do
     let(:s3_url) { "s3://url-for-s3/file.tar.gz" }
-    context "uses the default output" do 
+    context "uses the default output" do
       it "polls from s3 and sets the s3_path" do
         output = subject.get_from_s3(s3_url)
         expect(output).to include("s3cmd -f get $s3_path $output_path")

@@ -180,7 +180,7 @@ private
       scripts << bb.registry_import(docker.repo, docker.tag)
     elsif docker
       if docker.s3_bucket.nil?
-        docker_output = File.join(docker.package_dir, File.basename(docker.tar_path))
+        docker_output = File.join(docker.package_dir, docker.export_filename)
         if docker.tar_diff
           scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
         else
