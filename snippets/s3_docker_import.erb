@@ -1,0 +1,4 @@
+s3_docker_import_fn() {
+  <%= get_from_s3(data[:s3_url]) %>
+}
+s3_docker_import_fn | gunzip -c | <%= docker_import(data[:repo], data[:tag]) %>

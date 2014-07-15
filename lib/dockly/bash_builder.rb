@@ -15,7 +15,6 @@ module Dockly
       end
     end
 
-    # Done
     generate_snippet_for :normalize_for_dockly, []
     generate_snippet_for :get_from_s3, [:s3_url, :output_path], { :output_path => "-" }
     generate_snippet_for :install_package, [:path]
@@ -23,6 +22,7 @@ module Dockly
     generate_snippet_for :docker_import, [:repo, :tag], { :tag => "latest" }
     generate_snippet_for :file_docker_import, [:path, :repo, :tag]
     generate_snippet_for :file_diff_docker_import, [:base_image, :diff_image, :repo, :tag]
+    generate_snippet_for :s3_docker_import, [:s3_url, :repo, :tag]
     generate_snippet_for :s3_diff_docker_import, [:base_image, :diff_image, :repo, :tag]
     generate_snippet_for :registry_import, [:repo, :tag], { :tag => "latest" }
   end

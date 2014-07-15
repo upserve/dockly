@@ -94,6 +94,16 @@ describe Dockly::BashBuilder do
     end
   end
 
+  describe "#s3_docker_import" do
+    let(:s3_url) { "s3://bucket/image.tar.gz" }
+    it "pulls, gunzips and passes to docker import" do
+      expect(subject).to receive(:get_from_s3)
+      expect(subject).to receive(:docker_import)
+      output = subject.s3_docker_import(s3_url)
+      expect(output).to include("gunzip -c")
+    end
+  end
+
   describe "#s3_diff_docker_import" do
     let(:base_image) { "s3://bucket/base_image.tar.gz" }
     let(:diff_image) { "s3://bucket/diff_image.tar.gz" }
