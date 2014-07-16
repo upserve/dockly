@@ -26,6 +26,13 @@ class Dockly::Docker
   default_value :timeout, 60
 
   def generate!
+    image = generate_build
+    export_image(image)
+  ensure
+    cleanup([image]) if cleanup_images
+  end
+
+  def generate_build
     Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
     images = {}
 
@@ -42,11 +49,7 @@ class Dockly::Docker
 
     images[:two] = add_git_archive(images[:one])
     images[:three] = run_build_caches(images[:two])
-    images[:four] = build_image(images[:three])
-
-    export_image(images[:four])
-
-    true
+    build_image(images[:three])
   ensure
     cleanup(images.values.compact) if cleanup_images
   end
