@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'dockly-util', '~> 0.0.8'
   gem.add_dependency 'excon'
   gem.add_dependency 'fog', '~> 1.21.0'
-  gem.add_dependency 'fog-core', '~> 1.21.0', '>= 1.21.1'
+  gem.add_dependency 'fog-core', '~> 1.21.0'
   gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 0.4.42'
   gem.add_dependency 'grit'
