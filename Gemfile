@@ -4,3 +4,6 @@ source 'https://rubygems.org'
 gem 'foreman', :git => 'https://github.com/adamjt/foreman'
 
 gemspec
+
+gem 'fog-core'
+gem 'fog-json'
