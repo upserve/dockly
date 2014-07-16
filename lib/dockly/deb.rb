@@ -173,7 +173,7 @@ private
   end
 
   def post_startup_script
-    scripts = []
+    scripts = ["#!/bin/bash"]
     bb = Dockly::BashBuilder.new
     scripts << bb.normalize_for_dockly
     if get_registry

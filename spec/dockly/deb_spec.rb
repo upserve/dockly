@@ -120,16 +120,24 @@ describe Dockly::Deb do
     end
 
     context 'when there is no docker or foreman export' do
+      let(:output) { `dpkg --contents #{filename}` }
       it 'does nothing with docker or foreman' do
-        subject.docker.should_not_receive(:generate!)
         subject.foreman.should_not_receive(:create!)
         subject.create_package!
+        expect(output).to_not include("deb_test-image.tgz")
+        expect(output).to_not include("/etc/systemd")
+        expect(output).to_not include("/etc/init")
       end
 
       it 'creates a deb package' do
         subject.create_package!
         File.exist?(subject.build_path).should be_true
       end
+    end
+
+    it "places a startup script in the package" do
+      subject.create_package!
+      expect(`dpkg --contents #{filename}`).to include("dockly-startup.sh")
     end
   end
 
