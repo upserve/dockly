@@ -206,6 +206,7 @@ class Dockly::Docker
     if output && !s3_bucket.nil?
       output.abort_unless_closed
     end
+    raise
   ensure
     gzip_output.close if gzip_output
   end
@@ -218,6 +219,9 @@ class Dockly::Docker
 
   def export_image_diff(container, output)
     rd, wr = IO.pipe(Encoding::ASCII_8BIT)
+
+    rd.binmode
+    wr.binmode
 
     thread = Thread.new do
       begin
