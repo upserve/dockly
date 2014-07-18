@@ -2,7 +2,7 @@ class Dockly::BuildCache::Local < Dockly::BuildCache::Base
   def run_build
     puts "Build command: #{build_command}"
     status, body = run_command(build_command)
-    raise "Build Cache `#{build_command}` failed to run." unless status.success?
+    raise "Build Cache `#{build_command}` failed to run.\nError: #{body}" unless status.success?
     FileUtils.mkdir_p(File.dirname(save_file))
     tar_file = Dockly::Util::Tar.tar(output_directory, save_file)
     push_to_s3(tar_file)
