@@ -1,8 +1,6 @@
 require 'rake'
 require 'dockly'
 
-$rake_task_logger = Dockly::Util::Logger.new('[dockly rake_task]', STDOUT, false)
-
 class Rake::DebTask < Rake::Task
   def needed?
     raise "Package does not exist" if package.nil?
@@ -30,6 +28,22 @@ namespace :dockly do
       deb inst.name => 'dockly:load' do |name|
         Thread.current[:rake_task] = name
         inst.build
+      end
+    end
+  end
+
+  namespace :docker do
+    Dockly.dockers.values.each do |inst|
+      task inst.name => 'dockly:load' do
+        Thread.current[:rake_task] = inst.name
+        inst.generate!
+      end
+
+      namespace :noexport do
+        task inst.name => 'dockly:load' do
+          Thread.current[:rake_task] = inst.name
+          inst.generate_build
+        end
       end
     end
   end
