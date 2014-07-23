@@ -111,7 +111,7 @@ describe Dockly::BashBuilder do
       expect(subject).to receive(:get_from_s3).twice
       expect(subject).to receive(:docker_import)
       output = subject.s3_diff_docker_import(base_image, diff_image)
-      expect(output).to include("stat -f \"%z\"")    # get file size
+      expect(output).to include("stat --format \"%s\"")    # get file size
       expect(output).to include("$(($size - 1024))") # compute file size
       expect(output).to include("head -c $head_size")
       expect(output).to include("gunzip")
