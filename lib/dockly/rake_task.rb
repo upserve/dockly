@@ -12,9 +12,24 @@ class Rake::DebTask < Rake::Task
   end
 end
 
+class Rake::DockerTask < Rake::Task
+  def needed?
+    raise "Docker does not exist" if docker.nil?
+    !docker.exists?
+  end
+
+  def docker
+    Dockly::Docker[name.split(':').last.to_sym]
+  end
+end
+
 module Rake::DSL
   def deb(*args, &block)
     Rake::DebTask.define_task(*args, &block)
+  end
+
+  def docker(*args, &block)
+    Rake::DockerTask.define_task(*args, &block)
   end
 end
 
@@ -34,7 +49,7 @@ namespace :dockly do
 
   namespace :docker do
     Dockly.dockers.values.each do |inst|
-      task inst.name => 'dockly:load' do
+      docker inst.name => 'dockly:load' do
         Thread.current[:rake_task] = inst.name
         inst.generate!
       end

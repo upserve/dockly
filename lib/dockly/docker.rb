@@ -294,6 +294,18 @@ class Dockly::Docker
     path
   end
 
+  def exists?
+    return false unless s3_bucket
+    debug "#{name}: checking for package: #{s3_url}"
+    Dockly::AWS.s3.head_object(s3_bucket, s3_object)
+    info "#{name}: found package: #{s3_url}"
+    true
+  rescue
+    info "#{name}: could not find package: " +
+         "#{s3_url}"
+    false
+  end
+
   def repository(value = nil)
     name(value)
   end
