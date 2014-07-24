@@ -3,6 +3,7 @@ class Dockly::TarDiff
 
   # Tar header format for a ustar tar
   HEADER_UNPACK_FORMAT  = "Z100A8A8A8A12A12A8aZ100A6A2Z32Z32A8A8Z155"
+  PAX_FILE_FORMAT_REGEX = /\d+ path=(.*)/
 
   logger_prefix '[dockly tar_diff]'
 
@@ -15,9 +16,9 @@ class Dockly::TarDiff
     @target_enum = to_enum(:read_header, target)
   end
 
-  def write_tar_section(header, size, remainder)
+  def write_tar_section(header, data, remainder)
     output.write(header)
-    quick_write(size)
+    output.write(data)
     output.write("\0" * remainder)
   end
 
@@ -38,12 +39,13 @@ class Dockly::TarDiff
       name = fields[0]
       size = fields[4].oct
       mtime = fields[5].oct
+      typeflag = fields[7]
       prefix = fields[15]
 
       empty = (data == "\0" * 512)
       remainder = (512 - (size % 512)) % 512
 
-      yield data, name, prefix, mtime, size, remainder, empty
+      yield data, name, prefix, mtime, typeflag, size, remainder, empty
 
       io.read(remainder)
     end
@@ -51,12 +53,16 @@ class Dockly::TarDiff
 
   def process
     debug "Started processing tar diff"
+    target_data = nil
+    base_data = nil
     loop do
       begin
+
         target_header, target_name,  \
         target_prefix, target_mtime,  \
-        target_size, target_remainder, \
-        target_empty                    = target_enum.peek
+        target_typeflag,               \
+        target_size, target_remainder,  \
+        target_empty                     = target_enum.peek
       rescue StopIteration
         debug "Finished target file"
         break
@@ -68,15 +74,19 @@ class Dockly::TarDiff
       end
 
       begin
-        _, base_name, base_prefix, base_mtime, base_size, _, base_empty = base_enum.peek
+        _, base_name, base_prefix, base_mtime, base_typeflag, base_size, _, base_empty = base_enum.peek
       rescue StopIteration
-        write_tar_section(target_header, target_size, target_remainder)
+        target_data ||= target.read(target_size)
+        write_tar_section(target_header, target_data, target_remainder)
+        target_data = nil
         target_enum.next
         next
       end
 
       if base_empty
-        write_tar_section(target_header, target_size, target_remainder)
+        target_data ||= target.read(target_size)
+        write_tar_section(target_header, target_data, target_remainder)
+        target_data = nil
         target_enum.next
         next
       end
@@ -87,19 +97,51 @@ class Dockly::TarDiff
       target_full_name = target_full_name[1..-1] if target_full_name[0] == '/'
       base_full_name = base_full_name[1..-1] if base_full_name[0] == '/'
 
+      if target_typeflag == 'x'
+        target_file = File.basename(target_full_name)
+        target_dir  = File.dirname(File.dirname(target_full_name))
+        target_full_name = File.join(target_dir, target_file)
+      end
+
+      if base_typeflag == 'x'
+        base_file = File.basename(base_full_name)
+        base_dir  = File.dirname(File.dirname(base_full_name))
+        base_full_name = File.join(base_dir, base_file)
+      end
+
+      # Remove the PaxHeader.PID from the file
+      # Format: /base/directory/PaxHeader.1234/file.ext
+      # After:  /base/directory/file.ext
+      if (target_typeflag == 'x' && base_typeflag == 'x')
+        target_data = target.read(target_size)
+        base_data = base.read(base_size)
+
+        if target_match = target_data.match(PAX_FILE_FORMAT_REGEX) && base_match = base_data.match(PAX_FILE_FORMAT_REGEX)
+          target_full_name = target_match[1]
+          base_full_name   = base_match[1]
+        end
+      end
+
       if (target_full_name < base_full_name)
-        write_tar_section(target_header, target_size, target_remainder)
+        target_data ||= target.read(target_size)
+        write_tar_section(target_header, target_data, target_remainder)
+        target_data = nil
         target_enum.next
       elsif (base_full_name < target_full_name)
-        base.read(base_size)
+        base.read(base_size) unless base_data
+        base_data = nil
         base_enum.next
       elsif (target_mtime != base_mtime) || (target_size != base_size)
-        write_tar_section(target_header, target_size, target_remainder)
+        target_data ||= target.read(target_size)
+        write_tar_section(target_header, target_data, target_remainder)
+        target_data = nil
         target_enum.next
       else
-        target.read(target_size)
+        target.read(target_size) unless target_data
+        target_data = nil
         target_enum.next
-        base.read(base_size)
+        base.read(base_size) unless base_data
+        base_data = nil
         base_enum.next
       end
     end
