@@ -37,7 +37,7 @@ describe Dockly::TarDiff do
     let(:output_message) { "abcd\0\0\0" }
 
     it "it writes the header, size length message and remainder to the output" do
-      subject.write_tar_section(header, size, remainder)
+      subject.write_tar_section(header, message, remainder)
       expect(output.string).to be == output_message
     end
   end
@@ -51,7 +51,7 @@ describe Dockly::TarDiff do
         subject.read_header(input) do |*args|
           block.call(*args)
 
-          data, name, prefix, mtime, size, remainder, empty = args
+          data, name, prefix, mtime, typeflag, size, remainder, empty = args
 
           case b.num_yields
           when 1
