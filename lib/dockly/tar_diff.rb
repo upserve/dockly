@@ -116,7 +116,8 @@ class Dockly::TarDiff
         target_data = target.read(target_size)
         base_data = base.read(base_size)
 
-        if target_match = target_data.match(PAX_FILE_FORMAT_REGEX) && base_match = base_data.match(PAX_FILE_FORMAT_REGEX)
+        if target_match = target_data.match(PAX_FILE_FORMAT_REGEX) && \
+            base_match = base_data.match(PAX_FILE_FORMAT_REGEX)
           target_full_name = target_match[1]
           base_full_name   = base_match[1]
         end
