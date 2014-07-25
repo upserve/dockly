@@ -16,4 +16,5 @@ end
 
 Cane::RakeTask.new(:quality) do |cane|
   cane.canefile = '.cane'
+  cane.abc_exclude = %w(TarDiff#process)
 end

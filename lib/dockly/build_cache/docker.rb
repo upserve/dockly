@@ -59,7 +59,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     container.wait(3600) # 1 hour max timeout
     debug 'Restarting the container to copy the cache\'s output'
     # Restart the container so we can copy its output
-    container = container.commit.run('sleep 3600').tap(&:start)
+    container = container.commit.run('sleep 3600')
     container.copy(output_directory) { |chunk| file.write(chunk.to_s) }
     container.kill
     file.tap(&:rewind)
@@ -88,7 +88,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     resp = ""
     debug "running command `#{command}` on image #{image.id}"
     container = image.run(["/bin/bash", "-lc", "cd #{command_directory} && #{command}"])
-    container.attach { |source,chunk| resp += chunk }
+    container.attach(logs: true) { |source,chunk| resp += chunk }
     status = container.wait['StatusCode']
     debug "`#{command}` returned the following output:"
     debug resp.strip

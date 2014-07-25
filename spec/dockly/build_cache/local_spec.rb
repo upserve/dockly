@@ -83,7 +83,7 @@ describe Dockly::BuildCache::Local do
 
   describe '#hash_output' do
     let(:output) {
-      "f683463a09482287c33959ab71a87189"
+      "5ebe2fbf321fa1008833574649e986a3"
     }
 
     context "when hash command returns successfully" do

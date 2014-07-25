@@ -1,0 +1,12 @@
+set -e -o pipefail
+
+function log {
+  logger -t dockly:startup "$@"
+}
+
+function fatal {
+  logger -t dockly:startup "FATAL: $@"
+  exit 1
+}
+
+mkdir -p /opt/dockly

@@ -1,0 +1,14 @@
+<%
+base_image = "/opt/dockly/base_image.tar"
+%>
+
+s3_diff_docker_import_base_fn() {
+<%= get_from_s3(data[:base_image]) %>
+}
+s3_diff_docker_import_diff_fn() {
+<%= get_from_s3(data[:diff_image]) %>
+}
+s3_diff_docker_import_base_fn | gunzip -c > "<%= base_image %>"
+size=$(stat --format "%s" "<%= base_image %>")
+head_size=$(($size - 1024))
+(head -c $head_size "<%= base_image %>"; s3_diff_docker_import_diff_fn | gunzip -c) | <%= docker_import(data[:repo], data[:tag]) %>

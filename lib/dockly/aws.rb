@@ -4,6 +4,8 @@ require 'fog/aws'
 module Dockly::AWS
   extend self
 
+  autoload :S3Writer, 'dockly/aws/s3_writer'
+
   def service(name, klass)
     define_method name do
       if val = instance_variable_get(:"@#{name}")

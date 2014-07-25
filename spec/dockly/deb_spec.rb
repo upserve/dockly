@@ -10,7 +10,7 @@ describe Dockly::Deb do
         release '8'
         pre_install "ls"
         post_install "rd /s /q C:\*"
-        build_dir 'build/deb'
+        build_dir 'build'
       end
     end
     let(:filename) { "build/deb/my-sweet-deb_77.0.8_x86_64.deb" }
@@ -71,11 +71,12 @@ describe Dockly::Deb do
           git_archive '.'
           build 'touch /deb_worked'
           build_dir 'build/docker'
-          auth_config_file '/etc/docker/.dockercfg'
 
           registry :test_docker_registry do
-            username 'nahiluhmot'
-            email 'hulihan.tom159@gmail.com'
+            auth_config_file '/etc/docker/.dockercfg'
+            username 'tlunter'
+            email 'tlunter@gmail.com'
+            password '******'
           end
         end
       end
@@ -119,16 +120,24 @@ describe Dockly::Deb do
     end
 
     context 'when there is no docker or foreman export' do
+      let(:output) { `dpkg --contents #{filename}` }
       it 'does nothing with docker or foreman' do
-        subject.docker.should_not_receive(:generate!)
         subject.foreman.should_not_receive(:create!)
         subject.create_package!
+        expect(output).to_not include("deb_test-image.tgz")
+        expect(output).to_not include("/etc/systemd")
+        expect(output).to_not include("/etc/init")
       end
 
       it 'creates a deb package' do
         subject.create_package!
         File.exist?(subject.build_path).should be_true
       end
+    end
+
+    it "places a startup script in the package" do
+      subject.create_package!
+      expect(`dpkg --contents #{filename}`).to include("dockly-startup.sh")
     end
   end
 
@@ -191,9 +200,8 @@ describe Dockly::Deb do
       context 'when the package has yet to be created' do
         before { FileUtils.rm(subject.build_path) rescue nil }
 
-        it 'creates it' do
-          subject.should_receive(:create_package!).and_call_original
-          subject.upload_to_s3
+        it 'raises an error' do
+          expect { subject.upload_to_s3 }.to raise_error
         end
       end
 

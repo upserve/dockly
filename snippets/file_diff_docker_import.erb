@@ -1,0 +1,4 @@
+file_diff_docker_import_fn() {
+<%= get_from_s3(data[:base_image]) %>
+}
+(cat "<%= data[:diff_image] %>"; file_diff_docker_import_fn) | gunzip -c | <%= docker_import(data[:repo], data[:tag]) %>
