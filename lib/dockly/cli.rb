@@ -92,7 +92,7 @@ class Dockly::BuildCacheCommand < Dockly::AbstractCommand
       end
     else
       bcs = if local?
-        convert_bc_to_local_bc(docker_name)
+        convert_bc_to_local_bc(docker)
       else
         build_caches
       end
@@ -110,9 +110,10 @@ class Dockly::Cli < Dockly::AbstractCommand
   subcommand ['build_cache', 'bc'], 'Build Cache commands', Dockly::BuildCacheCommand
 end
 
-def convert_bc_to_local_bc(docker_name)
+def convert_bc_to_local_bc(docker)
+  return unless docker
   lbcs = []
-  Dockly.docker(docker_name.to_sym).build_cache.each do |bc|
+  docker.build_cache.each do |bc|
     lbc = Dockly::BuildCache::Local.new! { name bc.name }
     bc.instance_variables.each do |variable|
       lbc.instance_variable_set(variable, bc.instance_variable_get(variable))
