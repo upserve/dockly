@@ -16,6 +16,8 @@ Usage
 -----
 
 Once a `deb` block has been defined by the DSL below, dockly is invoked by either `bundle exec dockly build #{deb block name}` or `bundle exec rake dockly:deb:#{deb block name}`.
+If looking to just build a `docker` block, run either `bundle exec dockly docker #{docker block name}` or `bundle exec rake dockly:docker:#{docker block name}`.
+To build without exporting, run add either `--no-export` or `:noexport` to the CLI program or Rake task
 
 The DSL
 -------
@@ -142,6 +144,18 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - required: `false`
     - default: `[]`
     - description: a listing of references to build caches to run
+- `s3_bucket`
+    - required: `false`
+    - default: `nil`
+    - description: S3 bucket for where the docker image is exported
+- `s3_object_prefix`
+    - required: `false`
+    - default: `nil`
+    - description: prefix to be added to S3 exported docker images
+- `tar_diff`
+    - required: `false`
+    - default: `false`
+    - description: after docker export, performs a diff between the base image and the new image
 
 In addition to the above attributes, `docker` has the following references:
 

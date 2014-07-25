@@ -30,10 +30,44 @@ class Dockly::BuildCommand < Dockly::AbstractCommand
   end
 end
 
+class Dockly::DockerCommand < Dockly::AbstractCommand
+  parameter 'DOCKER', 'the name to generate the docker image for', :attribute_name => :docker_name
+  option ['-f', '--force'], :flag, 'force the package build', :default => false, :attribute_name => :force
+  option ['-n', '--no-export'], :flag, 'do not export', :default => false, :attribute_name => :noexport
+
+  def execute
+    super
+    if docker = Dockly.dockers[docker_name.to_sym]
+      if force? || !docker.exists?
+        if noexport?
+          docker.generate_build
+        else
+          docker.generate!
+        end
+      else
+        puts "Package already exists!"
+      end
+    end
+  end
+end
+
 class Dockly::ListCommand < Dockly::AbstractCommand
   def execute
     super
-    Dockly.debs.each_with_index do |(name, package), index|
+    dockers = Dockly.dockers.dup
+    debs = Dockly.debs
+
+    puts "Debs" unless debs.empty?
+    debs.each_with_index do |(name, package), index|
+      puts "#{index + 1}. #{name}"
+      if package.docker
+        dockers.delete(package.docker.name)
+        puts " - Docker: #{package.docker.name}"
+      end
+    end
+
+    puts "Dockers" unless dockers.empty?
+    dockers.each_with_index do |(name, docker), index|
       puts "#{index + 1}. #{name}"
     end
   end
@@ -68,6 +102,7 @@ end
 
 class Dockly::Cli < Dockly::AbstractCommand
   subcommand ['build', 'b'], 'Create package', Dockly::BuildCommand
+  subcommand ['docker', 'd'], 'Generate docker image', Dockly::DockerCommand
   subcommand ['list', 'l'], 'List packages', Dockly::ListCommand
   subcommand ['build_cache', 'bc'], 'Build Cache commands', Dockly::BuildCacheCommand
 end
