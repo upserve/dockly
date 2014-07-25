@@ -111,7 +111,7 @@ class Dockly::Cli < Dockly::AbstractCommand
 end
 
 def convert_bc_to_local_bc(docker)
-  return unless docker
+  return [] unless docker
   lbcs = []
   docker.build_cache.each do |bc|
     lbc = Dockly::BuildCache::Local.new! { name bc.name }
