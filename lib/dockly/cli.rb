@@ -81,8 +81,11 @@ class Dockly::BuildCacheCommand < Dockly::AbstractCommand
   def execute
     Dockly::BuildCache.model = Dockly::BuildCache::Local
     super
-    build_caches = Dockly.docker(docker_name.to_sym).build_cache || []
-    raise "No build cache for #{docker_name}" if build_caches.empty?
+    docker = Dockly.docker(docker_name.to_sym)
+    build_caches = (docker && docker.build_cache) || []
+
+    puts "No build cache for #{docker_name}" if build_caches.empty?
+
     if list?
       build_caches.each_with_index do |build_cache, index|
         puts "#{index + 1}. Hash: #{build_cache.hash_command} Build: #{build_cache.build_command}"
