@@ -74,6 +74,22 @@ describe Dockly::BashBuilder do
     end
   end
 
+  describe "#docker_tag" do
+    context "when there is no tag" do
+      it "does not mark a tag" do
+        output = subject.docker_tag("test_repo")
+        expect(output).to_not include("docker tag")
+      end
+    end
+
+    context "when there is a tag" do
+      it "tags the repo:tag as repo:latest" do
+        output = subject.docker_tag("test_repo", "a_tag")
+        expect(output).to include("docker tag test_repo:a_tag test_repo:latest")
+      end
+    end
+  end
+
   describe "#file_docker_import" do
     let(:path) { "/opt/dockly/file.tar.gz" }
     it "cats, gunzips and passes to docker import" do
