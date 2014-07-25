@@ -1,0 +1,3 @@
+<% if data[:tag] %>
+docker tag <%= data[:repo] %>:<%= data[:tag] %> <%= data[:repo] %>:latest
+<% end %>

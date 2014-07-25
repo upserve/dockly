@@ -20,6 +20,7 @@ module Dockly
     generate_snippet_for :install_package, [:path]
     generate_snippet_for :get_and_install_deb, [:s3_url, :deb_path]
     generate_snippet_for :docker_import, [:repo, :tag], { :tag => "latest" }
+    generate_snippet_for :docker_tag_latest, [:repo, :tag]
     generate_snippet_for :file_docker_import, [:path, :repo, :tag]
     generate_snippet_for :file_diff_docker_import, [:base_image, :diff_image, :repo, :tag]
     generate_snippet_for :s3_docker_import, [:s3_url, :repo, :tag]
