@@ -193,8 +193,8 @@ private
           scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
         end
       end
+      scripts << bb.docker_tag_latest(docker.repo, docker.tag)
     end
-    scripts << bb.docker_tag_latest(docker.repo, docker.tag)
     scripts.join("\n")
   end
 
