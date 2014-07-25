@@ -194,6 +194,7 @@ private
         end
       end
     end
+    scripts << bb.docker_tag_latest(docker.repo, docker.tag)
     scripts.join("\n")
   end
 
