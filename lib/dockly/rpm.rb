@@ -15,17 +15,6 @@ private
     debug "converting to rpm"
     @deb_package = @dir_package.convert(FPM::Package::RPM)
 
-    @deb_package.scripts[:before_install] = pre_install
-    @deb_package.scripts[:after_install] = post_install
-    @deb_package.scripts[:before_remove] = pre_uninstall
-    @deb_package.scripts[:after_remove] = post_uninstall
-
-    @deb_package.name = package_name
-    @deb_package.version = version
-    @deb_package.iteration = release
-    @deb_package.architecture = arch
-    @deb_package.vendor = vendor
-
     # rpm specific configs
     @deb_package.attributes[:rpm_rpmbuild_define] ||= []
     @deb_package.attributes[:rpm_defattrfile] = "-"

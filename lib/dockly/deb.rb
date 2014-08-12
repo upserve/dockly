@@ -106,13 +106,6 @@ private
 
     convert_package
 
-    info "done building #{package_name}"
-  end
-
-  def convert_package
-    debug "converting to deb"
-    @deb_package = @dir_package.convert(FPM::Package::Deb)
-
     @deb_package.scripts[:before_install] = pre_install
     @deb_package.scripts[:after_install] = post_install
     @deb_package.scripts[:before_remove] = pre_uninstall
@@ -123,6 +116,14 @@ private
     @deb_package.iteration = release
     @deb_package.architecture = arch
     @deb_package.vendor = vendor
+
+
+    info "done building #{package_name}"
+  end
+
+  def convert_package
+    debug "converting to deb"
+    @deb_package = @dir_package.convert(FPM::Package::Deb)
   end
 
   def add_foreman(package)
