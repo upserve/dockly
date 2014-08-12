@@ -4,4 +4,7 @@ rvm:
     - 1.9.3
     - 2.0.0
 script: CI=true bundle exec rake
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq rpm
 
