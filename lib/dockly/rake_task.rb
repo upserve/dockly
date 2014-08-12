@@ -4,7 +4,7 @@ require 'dockly'
 class Rake::DebTask < Rake::Task
   def needed?
     raise "Package does not exist" if package.nil?
-    !package.exists?
+    !!ENV['FORCE'] || !package.exists?
   end
 
   def package
@@ -15,7 +15,7 @@ end
 class Rake::RpmTask < Rake::Task
   def needed?
     raise "Package does not exist" if package.nil?
-    !package.exists?
+    !!ENV['FORCE'] || !package.exists?
   end
 
   def package
