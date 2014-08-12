@@ -7,7 +7,7 @@ class Dockly::Deb
   logger_prefix '[dockly deb]'
   dsl_attribute :package_name, :version, :release, :arch, :build_dir,
                 :deb_build_dir, :pre_install, :post_install, :pre_uninstall,
-                :post_uninstall, :s3_bucket, :files, :app_user
+                :post_uninstall, :s3_bucket, :files, :app_user, :vendor
 
   dsl_class_attribute :docker, Dockly::Docker
   dsl_class_attribute :foreman, Dockly::Foreman
@@ -19,6 +19,7 @@ class Dockly::Deb
   default_value :deb_build_dir, 'deb'
   default_value :files, []
   default_value :app_user, 'nobody'
+  default_value :vendor, 'Dockly'
 
   def file(source, destination)
     @files << { :source => source, :destination => destination }
@@ -121,6 +122,7 @@ private
     @deb_package.version = version
     @deb_package.iteration = release
     @deb_package.architecture = arch
+    @deb_package.vendor = vendor
   end
 
   def add_foreman(package)
