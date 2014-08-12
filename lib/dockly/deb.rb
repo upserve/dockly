@@ -103,6 +103,12 @@ private
     add_docker(@dir_package)
     add_startup_script(@dir_package)
 
+    convert_package
+
+    info "done building #{package_name}"
+  end
+
+  def convert_package
     debug "converting to deb"
     @deb_package = @dir_package.convert(FPM::Package::Deb)
 
@@ -115,8 +121,6 @@ private
     @deb_package.version = version
     @deb_package.iteration = release
     @deb_package.architecture = arch
-
-    info "done building #{package_name}"
   end
 
   def add_foreman(package)

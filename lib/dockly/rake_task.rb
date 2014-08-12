@@ -12,6 +12,17 @@ class Rake::DebTask < Rake::Task
   end
 end
 
+class Rake::RpmTask < Rake::Task
+  def needed?
+    raise "Package does not exist" if package.nil?
+    !package.exists?
+  end
+
+  def package
+    Dockly::Rpm[name.split(':').last.to_sym]
+  end
+end
+
 class Rake::DockerTask < Rake::Task
   def needed?
     raise "Docker does not exist" if docker.nil?
@@ -28,6 +39,10 @@ module Rake::DSL
     Rake::DebTask.define_task(*args, &block)
   end
 
+  def rpm(*args, &block)
+    Rake::RpmTask.define_task(*args, &block)
+  end
+
   def docker(*args, &block)
     Rake::DockerTask.define_task(*args, &block)
   end
@@ -41,6 +56,15 @@ namespace :dockly do
   namespace :deb do
     Dockly.debs.values.each do |inst|
       deb inst.name => 'dockly:load' do |name|
+        Thread.current[:rake_task] = name
+        inst.build
+      end
+    end
+  end
+
+  namespace :rpm do
+    Dockly.rpms.values.each do |inst|
+      rpm inst.name => 'dockly:load' do |name|
         Thread.current[:rake_task] = name
         inst.build
       end
