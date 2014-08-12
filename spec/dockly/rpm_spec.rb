@@ -91,7 +91,7 @@ describe Dockly::Rpm do
     context 'when it has files' do
       let(:file1) { Tempfile.new('files') }
       let(:file2) { Tempfile.new('files') }
-      let(:contents) { `dpkg --contents #{filename}` }
+      let(:contents) { `rpm -qpl #{filename}` }
 
       before do
         subject.file file1.path, '/etc/file1'
@@ -120,7 +120,7 @@ describe Dockly::Rpm do
     end
 
     context 'when there is no docker or foreman export' do
-      let(:output) { `dpkg --contents #{filename}` }
+      let(:output) { `rpm -qpl #{filename}` }
       it 'does nothing with docker or foreman' do
         subject.foreman.should_not_receive(:create!)
         subject.create_package!
@@ -137,7 +137,7 @@ describe Dockly::Rpm do
 
     it "places a startup script in the package" do
       subject.create_package!
-      expect(`dpkg --contents #{filename}`).to include("dockly-startup.sh")
+      expect(`rpm -qpl #{filename}`).to include("dockly-startup.sh")
     end
   end
 
