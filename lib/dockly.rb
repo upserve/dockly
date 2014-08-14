@@ -15,6 +15,7 @@ module Dockly
   autoload :BuildCache, 'dockly/build_cache'
   autoload :Docker, 'dockly/docker'
   autoload :Deb, 'dockly/deb'
+  autoload :Rpm, 'dockly/rpm'
   autoload :TarDiff, 'dockly/tar_diff'
 
   LOAD_FILE = 'dockly.rb'
@@ -38,6 +39,7 @@ module Dockly
   def setup
     {
       :debs => Dockly::Deb.instances,
+      :rpms => Dockly::Rpm.instances,
       :dockers => Dockly::Docker.instances,
       :foremans => Dockly::Foreman.instances
     }
@@ -45,6 +47,7 @@ module Dockly
 
   {
     :deb => Dockly::Deb,
+    :rpm => Dockly::Rpm,
     :docker => Dockly::Docker,
     :foreman => Dockly::Foreman
   }.each do |method, klass|
@@ -57,7 +60,7 @@ module Dockly
     end
   end
 
-  [:debs, :dockers, :foremans].each do |method|
+  [:debs, :rpms, :dockers, :foremans].each do |method|
     define_method(method) do
       inst[method]
     end
@@ -68,8 +71,8 @@ module Dockly
   end
 
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,
-                  :deb,  :docker,  :foreman, :git_sha,
-                  :debs, :dockers, :foremans
+                  :deb,  :rpm,  :docker,  :foreman, :git_sha,
+                  :debs, :rpms, :dockers, :foremans
 end
 
 require 'dockly/rake_task'

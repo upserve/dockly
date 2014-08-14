@@ -7,7 +7,7 @@ class Dockly::Deb
   logger_prefix '[dockly deb]'
   dsl_attribute :package_name, :version, :release, :arch, :build_dir,
                 :deb_build_dir, :pre_install, :post_install, :pre_uninstall,
-                :post_uninstall, :s3_bucket, :files, :app_user
+                :post_uninstall, :s3_bucket, :files, :app_user, :vendor
 
   dsl_class_attribute :docker, Dockly::Docker
   dsl_class_attribute :foreman, Dockly::Foreman
@@ -19,6 +19,7 @@ class Dockly::Deb
   default_value :deb_build_dir, 'deb'
   default_value :files, []
   default_value :app_user, 'nobody'
+  default_value :vendor, 'Dockly'
 
   def file(source, destination)
     @files << { :source => source, :destination => destination }
@@ -103,8 +104,7 @@ private
     add_docker(@dir_package)
     add_startup_script(@dir_package)
 
-    debug "converting to deb"
-    @deb_package = @dir_package.convert(FPM::Package::Deb)
+    convert_package
 
     @deb_package.scripts[:before_install] = pre_install
     @deb_package.scripts[:after_install] = post_install
@@ -115,8 +115,15 @@ private
     @deb_package.version = version
     @deb_package.iteration = release
     @deb_package.architecture = arch
+    @deb_package.vendor = vendor
+
 
     info "done building #{package_name}"
+  end
+
+  def convert_package
+    debug "converting to deb"
+    @deb_package = @dir_package.convert(FPM::Package::Deb)
   end
 
   def add_foreman(package)

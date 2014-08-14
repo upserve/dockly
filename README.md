@@ -5,17 +5,14 @@
 ![Dockly](https://raw.github.com/swipely/dockly/master/img/dockly.png)
 ======================================================================
 
-`dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, quite a few assumptions can be made about your stack:
-
-- You're deploying to a Debian-based system
-- You want to use [Docker](http://docker.io) for process isolation
+`dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, you will want to use [Docker](http://docker.io) for process isolation.
 
 Although only a specific type of repository may be used, these assumptions allow us to define a simple DSL to describe your repository.
 
 Usage
 -----
 
-Once a `deb` block has been defined by the DSL below, dockly is invoked by either `bundle exec dockly build #{deb block name}` or `bundle exec rake dockly:deb:#{deb block name}`.
+Once a package block has been defined by the DSL below, dockly is invoked by either (for a deb) `bundle exec dockly build #{deb block name}` or `bundle exec rake dockly:deb:#{deb block name}`.
 If looking to just build a `docker` block, run either `bundle exec dockly docker #{docker block name}` or `bundle exec rake dockly:docker:#{docker block name}`.
 To build without exporting, run add either `--no-export` or `:noexport` to the CLI program or Rake task
 
@@ -135,7 +132,7 @@ The `docker` DSL is used to define Docker containers. It has the following attri
 - `package_dir`
     - required: `true`
     - default: `/opt/docker`
-    - description: the location of the created image in the Debian package
+    - description: the location of the created image in the package
 - `timeout`
     - required: `true`
     - default: `60`
@@ -168,7 +165,7 @@ In addition to the above attributes, `docker` has the following references:
     - required: `false`
     - allows one
     - class: `Dockly::Docker::Registry`
-    - description: a registry to push to in lieu of exporting as a tar -- the registry will be automatically pulled upon installing the debian package
+    - description: a registry to push to in lieu of exporting as a tar -- the registry will be automatically pulled upon installing the package
 
 Need finer control of Docker packages? We also wrote [docker-api](https://github.com/swipely/docker-api).
 
@@ -223,7 +220,7 @@ The `foreman` DSL is used to define the foreman export scripts. It has the follo
 - `init_dir`
     - required: `false`
     - default: `'/etc/init'`
-    - description: the location of the startup scripts in the Debian package
+    - description: the location of the startup scripts in the rpm -qplian package
 - `prefix`
     - required: `false`
     - default: `nil`
@@ -250,6 +247,10 @@ The `deb` DSL is used to define Debian packages. It has the following attributes
     - required: `true`
     - default: `x86_64`
     - description: the intended architecture of the created package
+  `vendor`
+      required: `false`
+      default:  `Dockly`
+      description: Vendor name for this package
 - `build_dir`
     - required: `true`
     - default: `build/deb`
@@ -278,6 +279,20 @@ In addition to the above attributes, `deb` has the following references:
     - default: `nil`
     - class: `Dockly::Foreman`
     - description: any Foreman scripts used in the deb
+
+`rpm`
+-----
+
+Same as `deb` above, but with the following additions:
+
+  `vendor`
+      required: `true`
+      default:  `Dockly`
+      description: Vendor name for this package
+- `os`
+    - required: `true`
+      default: `linux`
+    - description: The operating system to target this rpm for
 
 Demo
 ===

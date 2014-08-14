@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'excon'
   gem.add_dependency 'fog', '~> 1.21.0'
   gem.add_dependency 'foreman'
-  gem.add_dependency 'fpm', '~> 0.4.42'
+  gem.add_dependency 'fpm', '~> 1.2.0'
   gem.add_dependency 'grit'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
