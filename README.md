@@ -280,6 +280,20 @@ In addition to the above attributes, `deb` has the following references:
     - class: `Dockly::Foreman`
     - description: any Foreman scripts used in the deb
 
+`rpm`
+-----
+
+Same as `deb` above, but with the follow additions:
+
+  `vendor`
+      required: `true`
+      default:  `Dockly`
+      description: Vendor name for this package
+- `os`
+    - required: `true`
+      default: `linux`
+    - description: The operating system to target this rpm for
+
 Demo
 ===
 
@@ -317,19 +331,5 @@ deb :dockly_package do
   # ends up in s3://#{s3_bucket}/#{package_name}/#{git_hash}/#{package_name}_#{version}.#{release}_#{arch}.deb
 end
 ```
-
-`rpm`
------
-
-Same as `deb` above, but with the follow additions:
-
-  `vendor`
-      required: `true`
-      default:  `Dockly`
-      description: Vendor name for this package
-- `os`
-    - required: `true`
-      default: `linux`
-    - description: The operating system to target this rpm for
 
 Copyright (c) 2013 Swipely, Inc. See LICENSE.txt for further details.
