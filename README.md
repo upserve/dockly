@@ -247,10 +247,10 @@ The `deb` DSL is used to define Debian packages. It has the following attributes
     - required: `true`
     - default: `x86_64`
     - description: the intended architecture of the created package
-  `vendor`
-      required: `false`
-      default:  `Dockly`
-      description: Vendor name for this package
+- `vendor`
+    - required: `false`
+    - default:  `Dockly`
+    - description: Vendor name for this package
 - `build_dir`
     - required: `true`
     - default: `build/deb`
