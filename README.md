@@ -285,13 +285,13 @@ In addition to the above attributes, `deb` has the following references:
 
 Same as `deb` above, but with the following additions:
 
-  `vendor`
-      required: `true`
-      default:  `Dockly`
-      description: Vendor name for this package
+- `vendor`
+    - required: `true`
+    - default:  `Dockly`
+    - description: Vendor name for this package
 - `os`
     - required: `true`
-      default: `linux`
+    - default: `linux`
     - description: The operating system to target this rpm for
 
 Demo
