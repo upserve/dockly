@@ -283,7 +283,7 @@ In addition to the above attributes, `deb` has the following references:
 `rpm`
 -----
 
-Same as `deb` above, but with the follow additions:
+Same as `deb` above, but with the following additions:
 
   `vendor`
       required: `true`
