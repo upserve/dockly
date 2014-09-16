@@ -53,12 +53,15 @@ namespace :dockly do
     raise "No dockly.rb found!" unless File.exist?('dockly.rb')
   end
 
+  build_targets = []
+
   namespace :deb do
     Dockly.debs.values.each do |inst|
       deb inst.name => 'dockly:load' do |name|
         Thread.current[:rake_task] = name
         inst.build
       end
+      build_targets << "dockly:deb:#{inst.name}"
     end
   end
 
@@ -68,6 +71,7 @@ namespace :dockly do
         Thread.current[:rake_task] = name
         inst.build
       end
+      build_targets << "dockly:rpm:#{inst.name}"
     end
   end
 
@@ -84,6 +88,10 @@ namespace :dockly do
           inst.generate_build
         end
       end
+
+      build_targets << "dockly:docker:#{inst.name}"
     end
   end
+
+  multitask :build_all => build_targets
 end
