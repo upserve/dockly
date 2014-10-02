@@ -9,7 +9,7 @@ class Dockly::Deb
                 :deb_build_dir, :pre_install, :post_install, :pre_uninstall,
                 :post_uninstall, :s3_bucket, :files, :app_user, :vendor
 
-  dsl_class_attribute :docker, Dockly::Docker
+  dsl_class_attribute :docker, Dockly::Docker, type: Array
   dsl_class_attribute :foreman, Dockly::Foreman
 
   default_value :version, '0.0'
@@ -150,57 +150,61 @@ private
   end
 
   def add_docker_auth_config(package)
-    return if (registry = get_registry).nil? || !registry.authentication_required?
+    return if (registries = get_registries).empty? || registries.none?(&:authentication_required?)
     info "adding docker config file"
-    registry.generate_config_file!
+    registries.each do |registry|
+      registry.generate_config_file!
 
-    package.attributes[:prefix] = registry.auth_config_file || "~#{app_user}"
-    Dir.chdir(File.dirname(registry.config_file)) do
-      package.input(File.basename(registry.config_file))
+      package.attributes[:prefix] = registry.auth_config_file || "~#{app_user}"
+      Dir.chdir(File.dirname(registry.config_file)) do
+        package.input(File.basename(registry.config_file))
+      end
+      package.attributes[:prefix] = nil
     end
-    package.attributes[:prefix] = nil
   end
 
   def add_docker(package)
-    return if docker.nil? || docker.s3_bucket
+    return if docker.nil? || docker.empty? || docker.all?(&:s3_bucket)
     info "adding docker image"
-    docker.generate!
-    return unless docker.registry.nil?
-    package.attributes[:prefix] = docker.package_dir
-    Dir.chdir(File.dirname(docker.tar_path)) do
-      package.input(File.basename(docker.tar_path))
+    docker.map do |docker_inst|
+      docker_inst.generate!
+      next unless docker_inst.registry.nil?
+      package.attributes[:prefix] = docker_inst.package_dir
+      Dir.chdir(File.dirname(docker_inst.tar_path)) do
+        package.input(File.basename(docker_inst.tar_path))
+      end
+      package.attributes[:prefix] = nil
     end
-    package.attributes[:prefix] = nil
   end
 
-  def get_registry
-    if docker && registry = docker.registry
-      registry
-    end
+  def get_registries
+    docker.nil? ? [] : docker.map(&:registry).compact.uniq
   end
 
   def post_startup_script
     scripts = ["#!/bin/bash"]
     bb = Dockly::BashBuilder.new
     scripts << bb.normalize_for_dockly
-    if get_registry
-      scripts << bb.registry_import(docker.repo, docker.tag)
-    elsif docker
-      if docker.s3_bucket.nil?
-        docker_output = File.join(docker.package_dir, docker.export_filename)
-        if docker.tar_diff
-          scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
+    if !get_registries.empty?
+      docker.each { |docker_inst| scripts << bb.registry_import(docker_inst.repo, docker_inst.tag) }
+    elsif docker && !docker.empty?
+      docker.each do |docker_inst|
+        if docker_inst.s3_bucket.nil?
+          docker_output = File.join(docker_inst.package_dir, docker_inst.export_filename)
+          if docker_inst.tar_diff
+            scripts << bb.file_diff_docker_import(docker_inst.import, docker_output, docker_inst.name, docker_inst.tag)
+          else
+            scripts << bb.file_docker_import(docker_output, docker_inst.name, docker_inst.tag)
+          end
         else
-          scripts << bb.file_docker_import(docker_output, docker.name, docker.tag)
+          if docker_inst.tar_diff
+            scripts << bb.s3_diff_docker_import(docker_inst.import, docker_inst.s3_url, docker_inst.name, docker_inst.tag)
+          else
+            scripts << bb.s3_docker_import(docker_inst.s3_url, docker_inst.name, docker_inst.tag)
+          end
         end
-      else
-        if docker.tar_diff
-          scripts << bb.s3_diff_docker_import(docker.import, docker.s3_url, docker.name, docker.tag)
-        else
-          scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
-        end
+        scripts << bb.docker_tag_latest(docker_inst.repo, docker_inst.tag)
       end
-      scripts << bb.docker_tag_latest(docker.repo, docker.tag)
     end
     scripts.join("\n")
   end
