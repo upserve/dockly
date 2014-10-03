@@ -30,7 +30,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
       tar_flags = keep_old_files ? '-xkf' : 'xf'
       container = ::Docker::Container.create(
         'Image' => image.id,
-        'Cmd' => ['/bin/bash', '-lc', [
+        'Cmd' => ['/bin/bash', '-c', [
             "mkdir -p #{File.dirname(output_directory)}",
             '&&',
             "tar #{tar_flags} #{File.join('/', 'host', path)} -C #{File.dirname(output_directory)}"
@@ -87,7 +87,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   def run_command(command)
     resp = ""
     debug "running command `#{command}` on image #{image.id}"
-    container = image.run(["/bin/bash", "-lc", "cd #{command_directory} && #{command}"])
+    container = image.run(["/bin/bash", "-c", "cd #{command_directory} && #{command}"])
     container.attach(logs: true) { |source,chunk| resp += chunk }
     status = container.wait['StatusCode']
     debug "`#{command}` returned the following output:"
