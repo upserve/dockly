@@ -1,6 +1,10 @@
 class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   attr_accessor :image
 
+  def wait_time
+    300 # max 5 minutes
+  end
+
   def execute!
     ensure_present! :image
     super
@@ -85,11 +89,11 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
   end
 
   def run_command(command)
-    resp = ""
     debug "running command `#{command}` on image #{image.id}"
     container = image.run(["/bin/bash", "-c", "cd #{command_directory} && #{command}"])
-    container.attach(logs: true) { |source,chunk| resp += chunk }
-    status = container.wait['StatusCode']
+    debug "command running in container #{container.id}"
+    status = container.wait(wait_time)['StatusCode']
+    resp = container.streaming_logs(stdout: true, stderr: true)
     debug "`#{command}` returned the following output:"
     debug resp.strip
     debug "`#{command}` exited with status #{status}, resulting container id: #{container.id}"
