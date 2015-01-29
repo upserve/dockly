@@ -1,4 +1,20 @@
 file_diff_docker_import_fn() {
-<%= get_from_s3(data[:base_image]) %>
+  s3_path="<%= data[:base_image] %>"
+  log "fetch: starting to fetch $s3_path"
+  s3cmd -f get $s3_path - 2> >(log)
+  log "fetch: successfully fetched $s3_path"
 }
-(cat "<%= data[:diff_image] %>"; file_diff_docker_import_fn) | gunzip -c | <%= docker_import(data[:repo], data[:tag]) %>
+
+docker_import() {
+  repo=<%= data[:repo] %>
+  tag=<%= data[:tag] %>
+  (cat "<%= data[:diff_image] %>"; file_diff_docker_import_fn) | gunzip -c | docker import - $repo:$tag
+}
+
+worked=1
+for attempt in {1..200}; do
+  [[ $worked != 0]] || break
+  docker_import && worked=0 || (log "fetch: attempt $attempt failed, sleeping 30"; sleep 30)
+done
+[[ $worked != 0 ]] && fatal "fetch: failed to import diff image"
+log "fetch: successfully imported image"
