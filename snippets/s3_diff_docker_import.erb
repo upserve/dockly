@@ -3,24 +3,48 @@ base_image = "/opt/dockly/base_image.tar"
 %>
 
 s3_diff_docker_import_base_fn() {
-<%= get_from_s3(data[:base_image]) %>
+  s3_path="<%= data[:base_image] %>"
+  log "fetch: starting to fetch $s3_path"
+  s3cmd -f get $s3_path - 2> >(log)
+  log "fetch: successfully fetched $s3_path"
 }
 
 s3_diff_docker_import_diff_fn() {
-<%= get_from_s3(data[:diff_image]) %>
+  s3_path="<%= data[:diff_image] %>"
+  log "fetch: starting to fetch $s3_path"
+  s3cmd -f get $s3_path - 2> >(log)
+  log "fetch: successfully fetched $s3_path"
+}
+
+base_image() {
+  s3_diff_docker_import_base_fn | gunzip -vc > "<%= base_image %>" 2> >(log)
 }
 
 stream_image() {
-size=$(stat --format "%s" "<%= base_image %>")
-head_size=$(($size - 1024))
-head -c $head_size "<%= base_image %>"
-s3_diff_docker_import_diff_fn | (gunzip -vc 2> >(log) || fatal "tardiff failed to gunzip")
+  size=$(stat --format "%s" "<%= base_image %>")
+  head_size=$(($size - 1024))
+  head -c $head_size "<%= base_image %>"
+  s3_diff_docker_import_diff_fn | (gunzip -vc 2> >(log) || fatal "tardiff failed to gunzip")
 }
 
 docker_import() {
-<%= docker_import(data[:repo], data[:tag]).to_s.strip %> > >(log) 2>&1 || fatal "docker failed to import"
+  repo=<%= data[:repo] %>
+  tag=<%= data[:tag] %>
+  docker import - $repo:$tag > >(log) 2>&1 || fatal "docker failed to import"
 }
 
-s3_diff_docker_import_base_fn | gunzip -vc > "<%= base_image %>" 2> >(log)
+worked=1
+for attempt in {1..200}; do
+  [[ $worked != 0 ]] || break
+  base_image && worked=0 || (log "fetch: attempt $attempt failed, sleeping 30"; sleep 30)
+done
+[[ $worked != 0 ]] && fatal "fetch: failed to pull base image"
+log "fetch: successfully pulled base image"
 
-stream_image | docker_import
+worked=1
+for attempt in {1..200}; do
+  [[ $worked != 0 ]] || break
+  stream_image | docker_import && worked=0 || (log "fetch: attempt $attempt failed, sleeping 30"; sleep 30)
+done
+[[ $worked != 0 ]] && fatal "fetch: failed to import diff image"
+log "fetch: successfully imported diff image"

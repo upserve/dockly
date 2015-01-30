@@ -1,1 +1,15 @@
-cat <%= data[:path] %> | gunzip -c | <%= docker_import(data[:repo], data[:tag]) %>
+docker_import() {
+  path=<%= data[:path] %>
+  repo=<%= data[:repo] %>
+  tag=<%= data[:tag] %>
+  cat $path | gunzip -c | docker import - $repo:$tag
+}
+
+# Hopefully this isn't ever needed
+worked=1
+for attempt in {1..200}; do
+  [[ $worked != 0 ]] || break
+  docker_import && worked=0 || (log "fetch: attempt $attempt failed, sleeping 30"; sleep 30)
+done
+[[ $worked != 0 ]] && fatal "fetch: failed to import image"
+log "fetch: successfully imported image"
