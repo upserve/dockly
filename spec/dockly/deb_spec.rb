@@ -25,23 +25,36 @@ describe Dockly::Deb do
       end
     end
 
-    context 'when it has a foreman export' do
+    context 'when it has foreman exports' do
+      let(:contents) { `dpkg --contents #{filename}` }
+
       before do
         subject.foreman do
-          name 'foreman'
+          name 'systemd-foreman'
+          build_dir 'build/foreman/systemd-foreman'
           init_dir '/etc/systemd/system'
-          build_dir 'build/foreman'
           procfile File.join(File.dirname(__FILE__), '..', 'fixtures', 'Procfile')
           user 'root'
           type 'systemd'
           prefix '/bin/sh'
         end
+
+        subject.foreman do
+          name 'upstart-foreman'
+          build_dir 'build/foreman/upstart-foreman'
+          init_dir '/etc/systemd/system'
+          procfile File.join(File.dirname(__FILE__), '..', 'fixtures', 'Procfile')
+          user 'root'
+          type 'upstart'
+          prefix '/bin/sh'
+        end
+
+        subject.create_package!
       end
 
-      it 'export the foreman to the deb' do
-        subject.create_package!
-        `dpkg --contents #{filename}`
-            .lines.grep(/foreman/).should_not be_empty
+      it 'exports the foreman to the deb', :cur do
+        expect(contents).to match(/upstart-foreman/)
+        expect(contents).to match(/systemd-foreman/)
       end
     end
 
