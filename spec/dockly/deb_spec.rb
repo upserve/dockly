@@ -31,7 +31,7 @@ describe Dockly::Deb do
       before do
         subject.foreman do
           name 'systemd-foreman'
-          build_dir 'build/foreman/systemd-foreman'
+          build_dir 'build/foreman'
           init_dir '/etc/systemd/system'
           procfile File.join(File.dirname(__FILE__), '..', 'fixtures', 'Procfile')
           user 'root'
@@ -41,7 +41,7 @@ describe Dockly::Deb do
 
         subject.foreman do
           name 'upstart-foreman'
-          build_dir 'build/foreman/upstart-foreman'
+          build_dir 'build/foreman'
           init_dir '/etc/systemd/system'
           procfile File.join(File.dirname(__FILE__), '..', 'fixtures', 'Procfile')
           user 'root'

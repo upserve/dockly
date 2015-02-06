@@ -278,7 +278,7 @@ In addition to the above attributes, `deb` has the following references:
     - required: `false`
     - default: `nil`
     - class: `Dockly::Foreman`
-    - description: any Foreman scripts used in the deb. Note that if you want to have multiple forman blocks, you must specify different `build_dir`s for each.
+    - description: any Foreman scripts used in the deb.
 
 `rpm`
 -----
