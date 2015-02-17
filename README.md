@@ -9,6 +9,11 @@
 
 Although only a specific type of repository may be used, these assumptions allow us to define a simple DSL to describe your repository.
 
+Tool Requirements
+-----------------
+
+To use the generated startup scripts, you'll need to use AWS CLI v1.5.0+
+
 Usage
 -----
 
