@@ -15,7 +15,7 @@ describe Dockly::BashBuilder do
     context "uses the default output" do
       it "polls from s3 and sets the s3_path" do
         output = subject.get_from_s3(s3_url)
-        expect(output).to include("aws --region us-east-1 s3 cp --quiet $s3_path $output_path")
+        expect(output).to include("aws s3 cp --quiet $s3_path $output_path")
         expect(output).to include("s3_path=\"#{s3_url}\"")
         expect(output).to include("output_path=\"-\"")
       end
@@ -24,7 +24,7 @@ describe Dockly::BashBuilder do
       let(:output_dir) { "test" }
       it "polls from s3 and sets the s3_path and output_path" do
         output = subject.get_from_s3(s3_url, output_dir)
-        expect(output).to include("aws --region us-east-1 s3 cp --quiet $s3_path $output_path")
+        expect(output).to include("aws s3 cp --quiet $s3_path $output_path")
         expect(output).to include("s3_path=\"#{s3_url}\"")
         expect(output).to include("output_path=\"#{output_dir}\"")
       end
