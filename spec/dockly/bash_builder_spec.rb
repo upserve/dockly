@@ -17,7 +17,7 @@ describe Dockly::BashBuilder do
       output = subject.get_and_install_deb(s3_url, deb_path)
       expect(output).to include(s3_url)
       expect(output).to include(deb_path)
-      expect(output).to include("s3cmd -f get")
+      expect(output).to include("aws s3 cp --quiet")
       expect(output).to include("dpkg -i")
     end
   end
@@ -56,7 +56,7 @@ describe Dockly::BashBuilder do
       expect(output).to include(base_image)
       expect(output).to include(diff_image)
       expect(output).to include("cat \"#{diff_image}\"")
-      expect(output).to include("s3cmd -f get")
+      expect(output).to include("aws s3 cp --quiet")
       expect(output).to include("docker import -")
     end
   end
@@ -67,7 +67,7 @@ describe Dockly::BashBuilder do
       output = subject.s3_docker_import(s3_url)
       expect(output).to include(s3_url)
       expect(output).to include("gunzip -c")
-      expect(output).to include("s3cmd -f get")
+      expect(output).to include("aws s3 cp --quiet")
       expect(output).to include("docker import -")
     end
   end
@@ -83,7 +83,7 @@ describe Dockly::BashBuilder do
       expect(output).to include("$(($size - 1024))") # compute file size
       expect(output).to include("head -c $head_size")
       expect(output).to include("gunzip")
-      expect(output).to include("s3cmd -f get")
+      expect(output).to include("aws s3 cp --quiet")
       expect(output).to include("docker import -")
     end
   end

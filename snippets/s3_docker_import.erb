@@ -1,7 +1,7 @@
 s3_docker_import_fn() {
   s3_path="<%= data[:s3_url] %>"
   log "fetch: starting to fetch $s3_path"
-  s3cmd -f get $s3_path - 2> >(log)
+  aws s3 cp --quiet $s3_path - 2> >(log)
   log "fetch: successfully fetched $s3_path"
 }
 

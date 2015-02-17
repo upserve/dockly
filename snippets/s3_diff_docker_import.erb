@@ -5,14 +5,14 @@ base_image = "/opt/dockly/base_image.tar"
 s3_diff_docker_import_base_fn() {
   s3_path="<%= data[:base_image] %>"
   log "fetch: starting to fetch $s3_path"
-  s3cmd -f get $s3_path - 2> >(log)
+  aws s3 cp --quiet $s3_path - 2> >(log)
   log "fetch: successfully fetched $s3_path"
 }
 
 s3_diff_docker_import_diff_fn() {
   s3_path="<%= data[:diff_image] %>"
   log "fetch: starting to fetch $s3_path"
-  s3cmd -f get $s3_path - 2> >(log)
+  aws s3 cp --quiet $s3_path - 2> >(log)
   log "fetch: successfully fetched $s3_path"
 }
 
