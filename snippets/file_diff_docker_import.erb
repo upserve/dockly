@@ -1,7 +1,7 @@
 file_diff_docker_import_fn() {
   s3_path="<%= data[:base_image] %>"
   log "fetch: starting to fetch $s3_path"
-  aws s3 cp --quiet $s3_path - 2> >(log)
+  timeout 600 aws s3 cp --quiet $s3_path - 2> >(log)
   log "fetch: successfully fetched $s3_path"
 }
 
