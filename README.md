@@ -283,7 +283,7 @@ In addition to the above attributes, `deb` has the following references:
     - required: `false`
     - default: `nil`
     - class: `Dockly::Foreman`
-    - description: any Foreman scripts used in the deb
+    - description: any Foreman scripts used in the deb.
 
 `rpm`
 -----

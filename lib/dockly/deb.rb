@@ -10,7 +10,7 @@ class Dockly::Deb
                 :post_uninstall, :s3_bucket, :files, :app_user, :vendor
 
   dsl_class_attribute :docker, Dockly::Docker
-  dsl_class_attribute :foreman, Dockly::Foreman
+  dsl_class_attribute :foreman, Dockly::Foreman, type: Array
 
   default_value :version, '0.0'
   default_value :release, '0'
@@ -127,14 +127,14 @@ private
   end
 
   def add_foreman(package)
-    return if foreman.nil?
-    info "adding foreman export"
-    foreman.create!
-    package.attributes[:prefix] = foreman.init_dir
-    Dir.chdir(foreman.build_dir) do
-      package.input('.')
+    return if (foreman || []).empty?
+    foreman.each do |fore|
+      info "adding foreman export '#{fore.name}'"
+      fore.create!
+      package.attributes[:prefix] = fore.init_dir
+      Dir.chdir(fore.build_dir) { package.input('.') }
+      package.attributes[:prefix] = nil
     end
-    package.attributes[:prefix] = nil
   end
 
   def add_files(package)
