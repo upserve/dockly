@@ -277,7 +277,7 @@ describe Dockly::Docker do
           paths.should include('sbin/init')
           paths.should include('lib/dockly.rb')
           paths.should include('it_worked')
-        }.to change { ::Docker::Image.all(:all => true).length }.by(3)
+        }.to change { ::Docker::Image.all(:all => true).length }.by(4)
       end
     end
 
