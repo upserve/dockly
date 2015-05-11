@@ -156,7 +156,7 @@ describe Dockly::BuildCache::Docker, :docker do
     context "when parameter command returns successfully" do
       let(:command) { "uname -r" }
       it 'returns the output of the parameter_command' do
-        expect(build_cache.parameter_output(command)).to match(/\A3\.\d+\.\d+-\d+-ARCH\Z/)
+        expect(build_cache.parameter_output(command)).to match(/\A3\.\d{2}\.\d-\d{2}-ARCH\Z/)
       end
     end
 

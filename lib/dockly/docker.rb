@@ -74,6 +74,8 @@ class Dockly::Docker
 
   def cleanup(images)
     info 'Cleaning up intermediate images'
+    images ||= []
+    images = images.compact
     ::Docker::Container.all(:all => true).each do |container|
       image_id = container.json['Image']
       if images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
