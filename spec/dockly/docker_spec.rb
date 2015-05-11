@@ -255,7 +255,8 @@ describe Dockly::Docker do
         subject.instance_eval do
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build "run touch /it_worked"
+          build_env 'TEST_FILE' => 'it_worked'
+          build "run touch $TEST_FILE"
           repository 'dockly_test'
           build_dir 'build/docker'
           cleanup_images false
