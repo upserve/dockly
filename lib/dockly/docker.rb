@@ -28,8 +28,8 @@ class Dockly::Docker
   default_value :s3_bucket, nil
   default_value :s3_object_prefix, ""
 
-  def env(hash = nil)
-    (@env ||= {}).tap { |env| env.merge!(hash) if hash.is_a?(Hash) }
+  def build_env(hash = nil)
+    (@build_env ||= {}).tap { |env| env.merge!(hash) if hash.is_a?(Hash) }
   end
 
   def generate!
@@ -54,7 +54,7 @@ class Dockly::Docker
       info "Successfully pulled #{full_name}"
     end
 
-    images[:two] = add_env(images[:one])
+    images[:two] = add_build_env(images[:one])
     images[:three] = add_git_archive(images[:two])
     images[:four] = run_build_caches(images[:three])
     build_image(images[:four])
@@ -149,12 +149,12 @@ class Dockly::Docker
     image
   end
 
-  def add_env(image)
-    return image if env.empty?
-    info "Setting the following environment variables in the docker image: #{env.keys}"
+  def add_build_env(image)
+    return image if build_env.empty?
+    info "Setting the following environment variables in the docker image: #{build_env.keys}"
     dockerfile = [
       "FROM #{image.id}",
-      *env.map { |key, val| "ENV #{key.to_s.shellescape}=#{val.to_s.shellescape}" }
+      *build_env.map { |key, val| "ENV #{key.to_s.shellescape}=#{val.to_s.shellescape}" }
     ].join("\n")
     out_image = ::Docker::Image.build(dockerfile)
     info "Successfully set the environment variables in the dockerfile"
