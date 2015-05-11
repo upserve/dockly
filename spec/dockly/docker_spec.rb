@@ -250,6 +250,36 @@ describe Dockly::Docker do
     let(:docker_file) { 'build/docker/dockly_test-image.tgz' }
     before { FileUtils.rm_rf(docker_file) }
 
+    context 'with cleaning up' do
+      before do
+        subject.instance_eval do
+          import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
+          git_archive '.'
+          build "run touch /it_worked"
+          repository 'dockly_test'
+          build_dir 'build/docker'
+          cleanup_images true
+        end
+      end
+
+      it 'builds a docker image' do
+        expect {
+          subject.generate!
+          File.exist?(docker_file).should be_true
+          Dockly::Util::Tar.is_gzip?(docker_file).should be_true
+          File.size(docker_file).should be > (1024 * 1024)
+          paths = []
+          Gem::Package::TarReader.new(gz = Zlib::GzipReader.new(File.new(docker_file))).each do |entry|
+            paths << entry.header.name
+          end
+          paths.size.should be > 1000
+          paths.should include('sbin/init')
+          paths.should include('lib/dockly.rb')
+          paths.should include('it_worked')
+        }.to_not change { ::Docker::Image.all(:all => true).length }
+      end
+    end
+
     context 'without cleaning up' do
       before do
         subject.instance_eval do
@@ -278,36 +308,6 @@ describe Dockly::Docker do
           paths.should include('lib/dockly.rb')
           paths.should include('it_worked')
         }.to change { ::Docker::Image.all(:all => true).length }.by(4)
-      end
-    end
-
-    context 'with cleaning up' do
-      before do
-        subject.instance_eval do
-          import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
-          git_archive '.'
-          build "run touch /it_worked"
-          repository 'dockly_test'
-          build_dir 'build/docker'
-          cleanup_images true
-        end
-      end
-
-      it 'builds a docker image' do
-        expect {
-          subject.generate!
-          File.exist?(docker_file).should be_true
-          Dockly::Util::Tar.is_gzip?(docker_file).should be_true
-          File.size(docker_file).should be > (1024 * 1024)
-          paths = []
-          Gem::Package::TarReader.new(gz = Zlib::GzipReader.new(File.new(docker_file))).each do |entry|
-            paths << entry.header.name
-          end
-          paths.size.should be > 1000
-          paths.should include('sbin/init')
-          paths.should include('lib/dockly.rb')
-          paths.should include('it_worked')
-        }.to_not change { ::Docker::Image.all(:all => true).length }
       end
     end
 
