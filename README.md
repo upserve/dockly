@@ -106,6 +106,9 @@ The `docker` DSL is used to define Docker containers. It has the following attri
     - required: `false` -- only required when `import` is not supplied
     - description: the location  of the base image to start building from
     - examples: `paintedfox/ruby`, `registry.example.com/my-custom-image`
+- `env`
+    - required: `false`
+    - description: Hash whose values are environment variables and keys are their values. These variables are only used during build commands, exported images will not contain them.
 - `import`
     - required: `false` -- only required when `registry_import` is not supplied
     - description: the location (url or S3 path) of the base image to start building from
