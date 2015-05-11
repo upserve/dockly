@@ -7,7 +7,7 @@ describe Dockly::BuildCache::Docker, :docker do
       git_archive '/app'
     end
   end
-  let(:image) { ::Docker::Image.build('from base') }
+  let(:image) { ::Docker::Image.build('from ubuntu') }
 
   before do
     build_cache.s3_bucket 'lol'
@@ -127,7 +127,7 @@ describe Dockly::BuildCache::Docker, :docker do
   end
 
   describe '#copy_output_dir' do
-    let(:container) { Docker::Container.create('Image' => 'base', 'Cmd' => %w[true]) }
+    let(:container) { Docker::Container.create('Image' => 'ubuntu', 'Cmd' => %w[true]) }
     let(:file) { build_cache.copy_output_dir(container) }
     let(:hash) { 'this_really_unique_hash' }
     let(:path) { file.path }

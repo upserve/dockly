@@ -148,7 +148,7 @@ describe Dockly::Docker do
   end
 
   describe "#export_image", :docker do
-    let(:image) { Docker::Image.create('fromImage' => 'base') }
+    let(:image) { Docker::Image.create('fromImage' => 'ubuntu') }
 
     context "with a registry export" do
       let(:registry) { double(:registry) }
