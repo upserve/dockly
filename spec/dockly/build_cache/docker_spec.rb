@@ -100,7 +100,7 @@ describe Dockly::BuildCache::Docker, :docker do
 
   describe '#hash_output' do
     let(:output) {
-      "682aa2a07693cc27756eee9751db3903  /etc/vim/vimrc"
+      "b458e7b28b9bc2d04bd5a3fd0f8d777e  /etc/vim/vimrc"
     }
 
     context "when hash command returns successfully" do
