@@ -52,7 +52,7 @@ describe Dockly::Deb do
         subject.create_package!
       end
 
-      it 'exports the foreman to the deb', :cur do
+      it 'exports the foreman to the deb' do
         expect(contents).to match(/upstart-foreman/)
         expect(contents).to match(/systemd-foreman/)
       end
