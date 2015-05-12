@@ -28,6 +28,10 @@ class Dockly::Docker
   default_value :s3_bucket, nil
   default_value :s3_object_prefix, ""
 
+  def build_env(hash = nil)
+    (@build_env ||= {}).tap { |env| env.merge!(hash) if hash.is_a?(Hash) }
+  end
+
   def generate!
     image = generate_build
     export_image(image)
@@ -50,9 +54,10 @@ class Dockly::Docker
       info "Successfully pulled #{full_name}"
     end
 
-    images[:two] = add_git_archive(images[:one])
-    images[:three] = run_build_caches(images[:two])
-    build_image(images[:three])
+    images[:two] = add_build_env(images[:one])
+    images[:three] = add_git_archive(images[:two])
+    images[:four] = run_build_caches(images[:three])
+    build_image(images[:four])
   ensure
     cleanup(images.values.compact) if cleanup_images
   end
@@ -69,6 +74,8 @@ class Dockly::Docker
 
   def cleanup(images)
     info 'Cleaning up intermediate images'
+    images ||= []
+    images = images.compact
     ::Docker::Container.all(:all => true).each do |container|
       image_id = container.json['Image']
       if images.any? { |image| image.id.start_with?(image_id) || image_id.start_with?(image.id) }
@@ -142,6 +149,18 @@ class Dockly::Docker
     image = ::Docker::Image.import(docker_tar)
     info "imported initial docker image: #{image.id}"
     image
+  end
+
+  def add_build_env(image)
+    return image if build_env.empty?
+    info "Setting the following environment variables in the docker image: #{build_env.keys}"
+    dockerfile = [
+      "FROM #{image.id}",
+      *build_env.map { |key, val| "ENV #{key.to_s.shellescape}=#{val.to_s.shellescape}" }
+    ].join("\n")
+    out_image = ::Docker::Image.build(dockerfile)
+    info "Successfully set the environment variables in the dockerfile"
+    out_image
   end
 
   def add_git_archive(image)

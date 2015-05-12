@@ -7,7 +7,7 @@ describe Dockly::BuildCache::Docker, :docker do
       git_archive '/app'
     end
   end
-  let(:image) { ::Docker::Image.build('from base') }
+  let(:image) { ::Docker::Image.build('from ubuntu:14.04') }
 
   before do
     build_cache.s3_bucket 'lol'
@@ -100,7 +100,7 @@ describe Dockly::BuildCache::Docker, :docker do
 
   describe '#hash_output' do
     let(:output) {
-      "682aa2a07693cc27756eee9751db3903  /etc/vim/vimrc"
+      "b458e7b28b9bc2d04bd5a3fd0f8d777e  /etc/vim/vimrc"
     }
 
     context "when hash command returns successfully" do
@@ -127,7 +127,7 @@ describe Dockly::BuildCache::Docker, :docker do
   end
 
   describe '#copy_output_dir' do
-    let(:container) { Docker::Container.create('Image' => 'base', 'Cmd' => %w[true]) }
+    let(:container) { Docker::Container.create('Image' => 'ubuntu:14.04', 'Cmd' => %w[true]) }
     let(:file) { build_cache.copy_output_dir(container) }
     let(:hash) { 'this_really_unique_hash' }
     let(:path) { file.path }
@@ -156,7 +156,7 @@ describe Dockly::BuildCache::Docker, :docker do
     context "when parameter command returns successfully" do
       let(:command) { "uname -r" }
       it 'returns the output of the parameter_command' do
-        expect(build_cache.parameter_output(command)).to match(/\A3\.\d{2}\.\d-\d-ARCH\Z/)
+        expect(build_cache.parameter_output(command)).to match(/\A3\.\d{2}\.\d-\d{2}-generic\Z/)
       end
     end
 
