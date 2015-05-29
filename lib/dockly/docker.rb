@@ -33,10 +33,25 @@ class Dockly::Docker
   end
 
   def generate!
-    image = generate_build
+    image = find_image_by_repotag || generate_build
     export_image(image)
   ensure
     cleanup([image]) if cleanup_images
+  end
+
+  def export_only
+    if image = find_image_by_repotag
+      info "Found image by repo:tag: #{repo}:#{tag} - #{image.inspect}"
+      export_image(image)
+    else
+      raise "Could not find image"
+    end
+  end
+
+  def find_image_by_repotag
+    Docker::Image.all.find do |image|
+      image.info["RepoTags"].include?("#{repo}:#{tag}")
+    end
   end
 
   def generate_build
@@ -227,6 +242,7 @@ class Dockly::Docker
     end
     raise
   ensure
+    container.tap(&:wait).remove if container
     gzip_output.close if gzip_output
   end
 
