@@ -90,7 +90,7 @@ describe Dockly::Rpm do
 
       after do
         image = ::Docker::Image.all.find do |image|
-          image.info['RepoTags'].include?('tlunter/rpm_test:latest')
+          image.info['RepoTags'].include?("#{ENV['DOCKER_USER']}/rpm_test:latest")
         end
         image.remove if image
       end
