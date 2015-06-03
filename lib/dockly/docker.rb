@@ -33,7 +33,7 @@ class Dockly::Docker
   end
 
   def generate!
-    image = find_image_by_repotag || generate_build
+    image = generate_build
     export_image(image)
   ensure
     cleanup([image]) if cleanup_images
@@ -194,7 +194,7 @@ class Dockly::Docker
     info "running custom build steps, starting with id: #{image.id}"
     out_image = ::Docker::Image.build("from #{image.id}\n#{build}")
     info "finished running custom build steps, result id: #{out_image.id}"
-    out_image.tap { |img| img.tag(:repo => repo, :tag => tag) }
+    out_image.tap { |img| img.tag(repo: repo, tag: tag, force: true) }
   end
 
   def repo
