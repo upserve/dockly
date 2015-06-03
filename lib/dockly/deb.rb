@@ -26,6 +26,7 @@ class Dockly::Deb
   end
 
   def create_package!
+    info "creating package"
     ensure_present! :build_dir, :deb_build_dir
     FileUtils.mkdir_p(File.join(build_dir, deb_build_dir))
     FileUtils.rm(build_path) if File.exist?(build_path)
@@ -41,9 +42,7 @@ class Dockly::Deb
   end
 
   def build
-    info "creating package"
     create_package!
-    info "uploading to s3"
     upload_to_s3
   end
 
@@ -64,6 +63,7 @@ class Dockly::Deb
   end
 
   def upload_to_s3
+    info "uploading to s3"
     return if s3_bucket.nil?
     raise "Package wasn't created!" unless File.exist?(build_path)
     info "uploading package to s3"
