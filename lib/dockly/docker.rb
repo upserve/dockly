@@ -39,6 +39,21 @@ class Dockly::Docker
     cleanup([image]) if cleanup_images
   end
 
+  def export_only
+    if image = find_image_by_repotag
+      info "Found image by repo:tag: #{repo}:#{tag} - #{image.inspect}"
+      export_image(image)
+    else
+      raise "Could not find image"
+    end
+  end
+
+  def find_image_by_repotag
+    Docker::Image.all.find do |image|
+      image.info["RepoTags"].include?("#{repo}:#{tag}")
+    end
+  end
+
   def generate_build
     Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
     images = {}
@@ -179,7 +194,7 @@ class Dockly::Docker
     info "running custom build steps, starting with id: #{image.id}"
     out_image = ::Docker::Image.build("from #{image.id}\n#{build}")
     info "finished running custom build steps, result id: #{out_image.id}"
-    out_image.tap { |img| img.tag(:repo => repo, :tag => tag) }
+    out_image.tap { |img| img.tag(repo: repo, tag: tag, force: true) }
   end
 
   def repo
@@ -227,6 +242,7 @@ class Dockly::Docker
     end
     raise
   ensure
+    container.tap(&:wait).remove if container
     gzip_output.close if gzip_output
   end
 

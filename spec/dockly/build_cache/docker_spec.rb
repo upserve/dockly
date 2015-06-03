@@ -46,7 +46,7 @@ describe Dockly::BuildCache::Docker, :docker do
       it "does not have the file lol" do
         i = build_cache.execute!
         output = ""
-        i.run('ls').attach { |source,chunk| output += chunk }
+        i.run('ls').attach(logs: true) { |source,chunk| output += chunk }
         output.should_not include('lol')
       end
     end
@@ -60,8 +60,8 @@ describe Dockly::BuildCache::Docker, :docker do
 
       it "does have the file lol" do
         i = build_cache.execute!
-        output = i.run('ls /').attach(:stdout => true)
-        output.first.first.lines.map(&:chomp).should include('lol')
+        output = i.run('ls /').attach(stdout: true, logs: true)
+        expect(output.first.grep(/lol/)).to_not be_empty
       end
     end
   end
@@ -75,7 +75,7 @@ describe Dockly::BuildCache::Docker, :docker do
       it "does have the file lol" do
         i = build_cache.run_build
         output = ""
-        i.run('ls').attach { |source,chunk| output += chunk }
+        i.run('ls').attach(logs: true) { |source,chunk| output += chunk }
         output.should include('lol')
       end
     end
@@ -156,7 +156,7 @@ describe Dockly::BuildCache::Docker, :docker do
     context "when parameter command returns successfully" do
       let(:command) { "uname -r" }
       it 'returns the output of the parameter_command' do
-        expect(build_cache.parameter_output(command)).to match(/\A3\.\d{2}\.\d-\d{2}-generic\Z/)
+        expect(build_cache.parameter_output(command)).to match(/\A3\.\d{2}\.\d-\d{1,2}-\w+\Z/)
       end
     end
 
