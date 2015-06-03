@@ -69,6 +69,13 @@ describe Dockly::Deb do
         end
       end
 
+      after do
+        image = ::Docker::Image.all.find do |image|
+          image.info['RepoTags'].include?('deb_test:latest')
+        end
+        image.remove if image
+      end
+
       it 'builds the docker image and adds it to the deb' do
         subject.create_package!
         `dpkg --contents #{filename}`
@@ -87,11 +94,18 @@ describe Dockly::Deb do
 
           registry :test_docker_registry do
             auth_config_file '/etc/docker/.dockercfg'
-            username 'tlunter'
-            email 'tlunter@gmail.com'
-            password '******'
+            username ENV['DOCKER_USER']
+            email ENV['DOCKER_EMAIL']
+            password ENV['DOCKER_PASS']
           end
         end
+      end
+
+      after do
+        image = ::Docker::Image.all.find do |image|
+          image.info['RepoTags'].include?("#{ENV['DOCKER_USER']}/deb_test:latest")
+        end
+        image.remove if image
       end
 
       it 'builds the docker image and adds it to the deb' do

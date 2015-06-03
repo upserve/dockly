@@ -56,6 +56,13 @@ describe Dockly::Rpm do
         end
       end
 
+      after do
+        image = ::Docker::Image.all.find do |image|
+          image.info['RepoTags'].include?('rpm_test:latest')
+        end
+        image.remove if image
+      end
+
       it 'builds the docker image and adds it to the rpm' do
         subject.create_package!
         `rpm -qpl #{filename}`
@@ -74,11 +81,18 @@ describe Dockly::Rpm do
 
           registry :test_docker_registry do
             auth_config_file '/etc/docker/.dockercfg'
-            username 'tlunter'
-            email 'tlunter@gmail.com'
-            password '******'
+            username ENV['DOCKER_USER']
+            email ENV['DOCKER_EMAIL']
+            password ENV['DOCKER_PASS']
           end
         end
+      end
+
+      after do
+        image = ::Docker::Image.all.find do |image|
+          image.info['RepoTags'].include?("#{ENV['DOCKER_USER']}/rpm_test:latest")
+        end
+        image.remove if image
       end
 
       it 'builds the docker image and adds it to the rpm' do
