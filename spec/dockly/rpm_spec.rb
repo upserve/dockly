@@ -153,6 +153,15 @@ describe Dockly::Rpm do
       subject.create_package!
       expect(`rpm -qpl #{filename}`).to include("dockly-startup.sh")
     end
+
+    context 'when package_startup_script is false' do
+      before { subject.package_startup_script(false) }
+
+      it 'does not place a startup script in the package' do
+        subject.create_package!
+        expect(`rpm -qpl #{filename}`).to_not include("dockly-startup.sh")
+      end
+    end
   end
 
   describe '#exists?' do
