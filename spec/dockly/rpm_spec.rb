@@ -51,7 +51,7 @@ describe Dockly::Rpm do
           name 'rpm_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /rpm_worked'
+          build 'RUN touch /rpm_worked'
           build_dir 'build/docker'
         end
       end
@@ -76,7 +76,7 @@ describe Dockly::Rpm do
           name 'rpm_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /rpm_worked'
+          build 'RUN touch /rpm_worked'
           build_dir 'build/docker'
 
           registry :test_docker_registry do

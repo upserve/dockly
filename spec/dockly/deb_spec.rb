@@ -64,7 +64,7 @@ describe Dockly::Deb do
           name 'deb_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /deb_worked'
+          build 'RUN touch /deb_worked'
           build_dir 'build/docker'
         end
       end
@@ -89,7 +89,7 @@ describe Dockly::Deb do
           name 'deb_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /deb_worked'
+          build 'RUN touch /deb_worked'
           build_dir 'build/docker'
 
           registry :test_docker_registry do
