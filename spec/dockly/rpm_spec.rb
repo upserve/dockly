@@ -51,7 +51,7 @@ describe Dockly::Rpm do
           name 'rpm_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /rpm_worked'
+          build 'RUN touch /rpm_worked'
           build_dir 'build/docker'
         end
       end
@@ -76,7 +76,7 @@ describe Dockly::Rpm do
           name 'rpm_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /rpm_worked'
+          build 'RUN touch /rpm_worked'
           build_dir 'build/docker'
 
           registry :test_docker_registry do
@@ -152,6 +152,15 @@ describe Dockly::Rpm do
     it "places a startup script in the package" do
       subject.create_package!
       expect(`rpm -qpl #{filename}`).to include("dockly-startup.sh")
+    end
+
+    context 'when package_startup_script is false' do
+      before { subject.package_startup_script(false) }
+
+      it 'does not place a startup script in the package' do
+        subject.create_package!
+        expect(`rpm -qpl #{filename}`).to_not include("dockly-startup.sh")
+      end
     end
   end
 

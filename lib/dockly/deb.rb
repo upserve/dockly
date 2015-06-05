@@ -7,7 +7,8 @@ class Dockly::Deb
   logger_prefix '[dockly deb]'
   dsl_attribute :package_name, :version, :release, :arch, :build_dir,
                 :deb_build_dir, :pre_install, :post_install, :pre_uninstall,
-                :post_uninstall, :s3_bucket, :files, :app_user, :vendor
+                :post_uninstall, :s3_bucket, :files, :app_user, :vendor,
+                :package_startup_script
 
   dsl_class_attribute :docker, Dockly::Docker
   dsl_class_attribute :foreman, Dockly::Foreman, type: Array
@@ -20,6 +21,7 @@ class Dockly::Deb
   default_value :files, []
   default_value :app_user, 'nobody'
   default_value :vendor, 'Dockly'
+  default_value :package_startup_script, true
 
   def file(source, destination)
     @files << { :source => source, :destination => destination }
@@ -102,7 +104,7 @@ private
     add_files(@dir_package)
     add_docker_auth_config(@dir_package)
     add_docker(@dir_package)
-    add_startup_script(@dir_package)
+    add_startup_script(@dir_package) if package_startup_script
 
     convert_package
 

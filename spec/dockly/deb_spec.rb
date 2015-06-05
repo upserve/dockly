@@ -64,7 +64,7 @@ describe Dockly::Deb do
           name 'deb_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /deb_worked'
+          build 'RUN touch /deb_worked'
           build_dir 'build/docker'
         end
       end
@@ -89,7 +89,7 @@ describe Dockly::Deb do
           name 'deb_test'
           import 'https://s3.amazonaws.com/swipely-pub/docker-export-ubuntu-latest.tgz'
           git_archive '.'
-          build 'touch /deb_worked'
+          build 'RUN touch /deb_worked'
           build_dir 'build/docker'
 
           registry :test_docker_registry do
@@ -165,6 +165,15 @@ describe Dockly::Deb do
     it "places a startup script in the package" do
       subject.create_package!
       expect(`dpkg --contents #{filename}`).to include("dockly-startup.sh")
+    end
+
+    context 'when package_startup_script is false' do
+      before { subject.package_startup_script(false) }
+
+      it 'does not place a startup script in the package' do
+        subject.create_package!
+        expect(`dpkg --contents #{filename}`).to_not include("dockly-startup.sh")
+      end
     end
   end
 
