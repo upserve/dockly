@@ -7,6 +7,7 @@ module Dockly::Util::Git
 
   def git_archive_to_file(prefix, file)
     File.open(file, 'w') do |io|
+      puts "archiving to file #{file}"
       git_archive_to_file(prefix, io)
     end
   end
@@ -16,8 +17,10 @@ module Dockly::Util::Git
       type, path, mode = hash.values_at(:type, :path, :mode)
       full_path = File.join(prefix, path)
       if type == :file
+        puts "adding file #{hash}"
         writer.add_file(full_path, mode) { |writer_io| writer_io.write(File.read(path)) }
       else
+        puts "adding dir #{hash}"
         writer.mkdir(full_path, mode)
       end
     end.tap(&:close)
