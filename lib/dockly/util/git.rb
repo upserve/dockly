@@ -8,7 +8,7 @@ module Dockly::Util::Git
   def git_archive_to_file(prefix, file)
     File.open(file, 'w') do |io|
       puts "archiving to file #{file}"
-      git_archive_to_file(prefix, io)
+      git_archive(prefix, io)
     end
   end
 
