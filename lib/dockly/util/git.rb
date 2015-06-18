@@ -5,25 +5,9 @@ module Dockly::Util::Git
     @git_repo ||= Rugged::Repository.discover(File.expand_path('.'))
   end
 
-  def git_archive_to_file(prefix, file)
-    File.open(file, 'w') do |io|
-      puts "archiving to file #{file}"
-      git_archive(prefix, io)
-    end
-  end
-
-  def git_archive(prefix, io)
-    git_ls_files.each_with_object(Gem::Package::TarWriter.new(io)) do |hash, writer|
-      type, path, mode = hash.values_at(:type, :path, :mode)
-      full_path = File.join(prefix, path)
-      if type == :file
-        puts "adding file #{hash}"
-        writer.add_file(full_path, mode) { |writer_io| writer_io.write(File.read(path)) }
-      else
-        puts "adding dir #{hash}"
-        writer.mkdir(full_path, mode)
-      end
-    end.tap(&:close)
+  # This is needed to do git archives since that is not built in to rugged.
+  def legacy_git_repo
+    @legacy_git_repo ||= Grit::Repo.new('.')
   end
 
   def git_ls_files

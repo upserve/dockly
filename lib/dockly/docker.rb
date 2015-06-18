@@ -140,7 +140,9 @@ class Dockly::Docker
     FileUtils.rm_rf(git_archive_dir)
     FileUtils.mkdir_p(git_archive_dir)
     info "archiving #{Dockly::Util::Git.git_sha}"
-    Dockly::Util::Git.git_archive_to_file(prefix, git_archive_path)
+    Grit::Git.with_timeout(120) do
+      Dockly::Util::Git.legacy_git_repo.archive_to_file(Dockly::Util::Git.git_sha, prefix, git_archive_path, 'tar', 'cat')
+    end
     info "made the git archive for sha #{Dockly::Util::Git.git_sha}"
     git_archive_path
   end

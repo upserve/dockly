@@ -5,6 +5,7 @@ require 'fog'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 require 'rugged'
+require 'grit'
 
 module Dockly
   attr_reader :instance, :git_sha
