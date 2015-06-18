@@ -34,6 +34,6 @@ module Dockly::Util::Git
   end
 
   def git_sha
-    @git_sha ||= repo.head.target_id[0..6]
+    @git_sha ||= git_repo.head.target_id[0..6]
   end
 end
