@@ -21,7 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'fog', '~> 1.21'
   gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 1.2.0'
-  gem.add_dependency 'grit'
+  gem.add_dependency 'rugged'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'rake'
