@@ -34,6 +34,12 @@ docker_import() {
   docker import - $repo:$tag > >(log) 2>&1 || fatal "docker failed to import"
 }
 
+remove_bad_imports() {
+  log "removing bad imports"
+  docker images | grep \<none | awk '{ print $3 }' | xargs docker rmi
+  log "bad import removed"
+}
+
 worked=1
 for attempt in {1..200}; do
   [[ $worked != 0 ]] || break
@@ -46,6 +52,7 @@ worked=1
 for attempt in {1..200}; do
   [[ $worked != 0 ]] || break
   stream_image | docker_import && worked=0 || (log "fetch: attempt $attempt failed, sleeping 30"; sleep 30)
+  [[ $worked != 0 ]] && remove_bad_imports
 done
 [[ $worked != 0 ]] && fatal "fetch: failed to import diff image"
 log "fetch: successfully imported diff image"
