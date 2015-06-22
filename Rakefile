@@ -6,6 +6,11 @@ require 'rake'
 require 'dockly'
 require 'rspec/core/rake_task'
 require 'cane/rake_task'
+require 'pry'
+
+task :shell do
+  Pry.start(Dockly)
+end
 
 task :default => [:spec, :quality]
 
