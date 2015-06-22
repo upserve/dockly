@@ -4,7 +4,9 @@ rvm:
     - 2.0
     - 2.1
     - 2.2
-script: git pull origin --tag && CI=true bundle exec rake
+script:
+  - git fetch --tags
+  - CI=true bundle exec rake
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq rpm
