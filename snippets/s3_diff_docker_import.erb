@@ -36,7 +36,10 @@ docker_import() {
 
 remove_bad_imports() {
   log "removing bad imports"
-  docker images | grep \<none | awk '{ print $3 }' | xargs docker rmi
+  images=$(docker images | grep \<none | awk '{ print $3 }')
+  if (( $(echo -n "$images") | wc -l > 0 )); then
+    echo -n "$images" | xargs docker rmi
+  fi
   log "bad import removed"
 }
 
