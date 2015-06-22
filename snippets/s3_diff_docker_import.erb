@@ -36,11 +36,14 @@ docker_import() {
 
 remove_bad_imports() {
   log "removing bad imports"
-  images=$(docker images | grep \<none | awk '{ print $3 }')
+  images=$(docker images | grep \<none | awk '{ print $3 }' || echo "")
+  log "images: $images"
   if [[ "x$images" != "x" ]]; then
     docker rmi $images > >(log)
+    log "bad import removed"
+  else
+    log "no bad images"
   fi
-  log "bad import removed"
 }
 
 worked=1
