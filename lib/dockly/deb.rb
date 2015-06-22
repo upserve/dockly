@@ -48,6 +48,14 @@ class Dockly::Deb
     upload_to_s3
   end
 
+  def copy_from_s3(sha)
+    ensure_present! :s3_bucket
+    object = s3_object_name_for(sha)
+    info "Copying s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
+    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object_name)
+    info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
+  end
+
   def build_path
     ensure_present! :build_dir, :deb_build_dir
     File.join(build_dir, deb_build_dir, output_filename)
@@ -59,8 +67,7 @@ class Dockly::Deb
     info "#{name}: found package: #{s3_url}"
     true
   rescue
-    info "#{name}: could not find package: " +
-         "#{s3_url}"
+    info "#{name}: could not find package: #{s3_url}"
     false
   end
 
@@ -78,7 +85,11 @@ class Dockly::Deb
   end
 
   def s3_object_name
-    "#{package_name}/#{Dockly::Util::Git.git_sha}/#{output_filename}"
+    s3_object_name_for(Dockly::Util::Git.git_sha)
+  end
+
+  def s3_object_name_for(sha)
+    "#{package_name}/#{sha}/#{output_filename}"
   end
 
   def output_filename

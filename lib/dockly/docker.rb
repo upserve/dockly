@@ -32,6 +32,14 @@ class Dockly::Docker
     (@build_env ||= {}).tap { |env| env.merge!(hash) if hash.is_a?(Hash) }
   end
 
+  def copy_from_s3(sha)
+    return if s3_bucket.nil?
+    object = s3_object_for(sha)
+    info "Copying s3://#{s3_bucket}/#{object} to #{s3_bucket}/#{s3_object}"
+    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object)
+    info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object}"
+  end
+
   def generate!
     image = generate_build
     export_image(image)
@@ -220,10 +228,10 @@ class Dockly::Docker
       container = image.run('true')
       info "created the container: #{container.id}"
 
-      unless s3_bucket.nil?
-        output = Dockly::AWS::S3Writer.new(connection, s3_bucket, s3_object)
-      else
+      if s3_bucket.nil?
         output = File.open(tar_path, 'wb')
+      else
+        output = Dockly::AWS::S3Writer.new(connection, s3_bucket, s3_object)
       end
 
       gzip_output = Zlib::GzipWriter.new(output)
@@ -285,9 +293,11 @@ class Dockly::Docker
   end
 
   def s3_object
-    output = "#{s3_object_prefix}"
-    output << "#{Dockly::Util::Git.git_sha}/"
-    output << "#{export_filename}"
+    s3_object_for(Dockly::Util::Git.git_sha)
+  end
+
+  def s3_object_for(sha)
+    [s3_object_prefix, sha, '/', export_filename].join
   end
 
   def push_to_registry(image)

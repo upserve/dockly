@@ -4,6 +4,7 @@ require 'dockly/util/git'
 require 'fog'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
+require 'rugged'
 
 module Dockly
   attr_reader :instance, :git_sha
@@ -15,6 +16,7 @@ module Dockly
   autoload :BuildCache, 'dockly/build_cache'
   autoload :Docker, 'dockly/docker'
   autoload :Deb, 'dockly/deb'
+  autoload :History, 'dockly/history'
   autoload :Rpm, 'dockly/rpm'
   autoload :TarDiff, 'dockly/tar_diff'
 
