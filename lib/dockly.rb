@@ -16,6 +16,7 @@ module Dockly
   autoload :BuildCache, 'dockly/build_cache'
   autoload :Docker, 'dockly/docker'
   autoload :Deb, 'dockly/deb'
+  autoload :History, 'dockly/history'
   autoload :Rpm, 'dockly/rpm'
   autoload :TarDiff, 'dockly/tar_diff'
 
