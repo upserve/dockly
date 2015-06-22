@@ -56,6 +56,7 @@ namespace :dockly do
   prepare_targets = []
   upload_targets = []
   build_targets = []
+  copy_targets = []
 
   namespace :deb do
     Dockly.debs.values.each do |inst|
@@ -71,6 +72,12 @@ namespace :dockly do
         end
       end
 
+      namespace :copy do
+        task inst.name => 'dockly:load' do |name|
+          inst.copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+        end
+      end
+
       deb inst.name => [
         'dockly:load',
         "dockly:deb:prepare:#{inst.name}",
@@ -78,6 +85,7 @@ namespace :dockly do
       ]
       prepare_targets << "dockly:deb:prepare:#{inst.name}"
       upload_targets << "dockly:deb:upload:#{inst.name}"
+      copy_targets << "dockly:deb:copy:#{inst.name}"
       build_targets << "dockly:deb:#{inst.name}"
     end
   end
@@ -96,6 +104,12 @@ namespace :dockly do
         end
       end
 
+      namespace :copy do
+        task inst.name => 'dockly:load' do |name|
+          inst.copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+        end
+      end
+
       rpm inst.name => [
         'dockly:load',
         "dockly:rpm:prepare:#{inst.name}",
@@ -103,6 +117,7 @@ namespace :dockly do
       ]
       prepare_targets << "dockly:rpm:prepare:#{inst.name}"
       upload_targets << "dockly:rpm:upload:#{inst.name}"
+      copy_targets << "dockly:rpm:copy:#{inst.name}"
       build_targets << "dockly:rpm:#{inst.name}"
     end
   end
@@ -128,6 +143,13 @@ namespace :dockly do
         end
       end
 
+      namespace :copy do
+        task inst.name => 'dockly:load' do
+          Thread.current[:rake_task] = inst.name
+          inst.copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+        end
+      end
+
       docker inst.name => [
         'dockly:load',
         "dockly:docker:prepare:#{inst.name}",
@@ -138,6 +160,7 @@ namespace :dockly do
       unless inst.s3_bucket.nil?
         prepare_targets << "dockly:docker:prepare:#{inst.name}"
         upload_targets << "dockly:docker:upload:#{inst.name}"
+        copy_targets << "dockly:docker:copy:#{inst.name}"
         build_targets << "dockly:docker:#{inst.name}"
       end
     end
@@ -146,4 +169,15 @@ namespace :dockly do
   multitask :prepare_all => prepare_targets
   multitask :upload_all => upload_targets
   multitask :build_all => build_targets
+  multitask :copy_all => copy_targets
+
+  task :build_or_copy_all do
+    if Dockly::History.duplicate_build?
+      Rake::Task['dockly:copy_all'].invoke
+    else
+      Rake::Task['dockly:build_all'].invoke
+      Dockly::History.write_content_tag!
+      Dockly::History.push_content_tag!
+    end
+  end
 end
