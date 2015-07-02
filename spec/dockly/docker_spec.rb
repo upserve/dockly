@@ -85,6 +85,10 @@ describe Dockly::Docker do
         end
       end
       images << subject.import_base(subject.ensure_tar(docker_file))
+      expect(Docker::Image.all).to be_any do |image|
+        image.info['RepoTags']
+          .include?("my-app-base:dockly-#{Dockly::VERSION}-docker-export-ubuntu-latest")
+      end
       expect(images.last).to_not be_nil
       expect(images.last.id).to_not be_nil
 
@@ -96,6 +100,15 @@ describe Dockly::Docker do
       # it 'exports'
       subject.export_image(images.last)
       expect(File.exist?('build/docker/test_docker-image.tgz')).to be_true
+    end
+
+    context 'when the image has already been imported' do
+      before { images << subject.import_base(docker_file) }
+
+      it 'does not reimport the image' do
+        expect(Docker::Image).to_not receive(:import)
+        subject.import_base(docker_file)
+      end
     end
   end
 
