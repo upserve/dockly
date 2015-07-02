@@ -85,6 +85,10 @@ describe Dockly::Docker do
         end
       end
       images << subject.import_base(subject.ensure_tar(docker_file))
+      expect(Docker::Image.all).to be_any do |image|
+        image.info['RepoTags']
+          .include?("my-app-base:dockly-#{Dockly::VERSION}-docker-export-ubuntu-latest")
+      end
       expect(images.last).to_not be_nil
       expect(images.last.id).to_not be_nil
 

@@ -168,10 +168,19 @@ class Dockly::Docker
   end
 
   def import_base(docker_tar)
-    info "importing the docker image from #{docker_tar}"
-    image = ::Docker::Image.import(docker_tar)
-    info "imported initial docker image: #{image.id}"
-    image
+    repo = "#{name}-base"
+    tag = "dockly-#{Dockly::VERSION}-#{File.basename(docker_tar).split('.').first}"
+    info "looking for imported base image with tag: #{tag}"
+    image = Docker::Image.all.find { |img| img.info['RepoTags'].include?("#{repo}:#{tag}") }
+    if image
+      info "found imported base image: #{image.id}"
+      image
+    else
+      info "could not find image with tag #{tag}, importing the docker image from #{docker_tar}"
+      image = ::Docker::Image.import(docker_tar, 'repo' => repo, 'tag' => tag)
+      info "imported initial docker image: #{image.id}"
+      image
+    end
   end
 
   def add_build_env(image)
