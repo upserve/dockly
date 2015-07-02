@@ -8,7 +8,7 @@ module Dockly::History
   TAG_PREFIX = 'dockly-'
 
   def push_content_tag!
-    fail 'An SSH agent must be running to push the tag' if ENV['SSH_AGENT_PID'].nil?
+    fail 'An SSH agent must be running to push the tag' if ENV['SSH_AUTH_SOCK'].nil?
     refs = ["refs/tags/#{content_tag}"]
     repo.remotes.each do |remote|
       username = remote.url.split('@').first
