@@ -101,6 +101,15 @@ describe Dockly::Docker do
       subject.export_image(images.last)
       expect(File.exist?('build/docker/test_docker-image.tgz')).to be_true
     end
+
+    context 'when the image has already been imported' do
+      before { images << subject.import_base(docker_file) }
+
+      it 'does not reimport the image' do
+        expect(Docker::Image).to_not receive(:import)
+        subject.import_base(docker_file)
+      end
+    end
   end
 
   describe '#fetch_import' do
