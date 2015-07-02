@@ -19,6 +19,7 @@ module Dockly
   autoload :History, 'dockly/history'
   autoload :Rpm, 'dockly/rpm'
   autoload :TarDiff, 'dockly/tar_diff'
+  autoload :VERSION, 'dockly/version'
 
   LOAD_FILE = 'dockly.rb'
 
