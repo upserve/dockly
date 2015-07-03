@@ -169,7 +169,7 @@ class Dockly::Docker
 
   def import_base(docker_tar)
     repo = "#{name}-base"
-    tag = "dockly-#{Dockly::VERSION}-#{File.basename(docker_tar).split('.').first}"
+    tag = "dockly-#{Dockly::VERSION}-#{File.basename(import).split('.').first}"
     info "looking for imported base image with tag: #{tag}"
     image = Docker::Image.all.find { |img| img.info['RepoTags'].include?("#{repo}:#{tag}") }
     if image

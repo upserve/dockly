@@ -70,14 +70,15 @@ describe Dockly::Docker do
     let(:container) { Docker::Container.create('Image' => images.last.id, 'Cmd' => ['ls', '-1', '/']) }
     let(:output) { container.tap(&:start).attach(logs: true) }
 
+    before { subject.import docker_file }
+
     after do
       container.tap(&:wait).remove
-      images.last.remove
+      images.last.remove(force: true)
     end
 
     # TODO: since we used to run this w/ Vagrant, we put it all together; break it up
     it 'works' do
-      # it 'docker imports'
       subject.tag 'my-app'
       unless File.exist?(docker_file)
         File.open(docker_file, 'wb') do |file|
