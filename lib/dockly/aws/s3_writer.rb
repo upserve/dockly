@@ -16,7 +16,9 @@ module Dockly
         @closed = false
         @buffer = ""
 
-        init_upload_res = connection.initiate_multipart_upload(s3_bucket, s3_object)
+        init_upload_res = connection.initiate_multipart_upload(s3_bucket, s3_object, {
+          'x-amz-acl' => 'bucket-owner-full-control'
+        })
         @upload_id = init_upload_res.body['UploadId']
       end
 

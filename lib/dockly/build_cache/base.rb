@@ -89,8 +89,12 @@ class Dockly::BuildCache::Base
 
   def push_to_s3(file)
     ensure_present! :s3_bucket, :s3_object_prefix
-    connection.put_object(s3_bucket, s3_object(hash_output), file.read)
-    connection.copy_object(s3_bucket, s3_object(hash_output), s3_bucket, s3_object("latest"))
+    connection.put_object(s3_bucket, s3_object(hash_output), file.read, {
+      'x-amz-acl' => 'bucket-owner-full-control'
+    })
+    connection.copy_object(s3_bucket, s3_object(hash_output), s3_bucket, s3_object("latest"), {
+      'x-amz-acl' => 'bucket-owner-full-control'
+    })
   end
 
   def file_output(file)

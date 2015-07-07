@@ -52,7 +52,9 @@ class Dockly::Deb
     ensure_present! :s3_bucket
     object = s3_object_name_for(sha)
     info "Copying s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
-    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object_name)
+    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object_name, {
+      'x-amz-acl' => 'bucket-owner-full-control'
+    })
     info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
   end
 
@@ -77,7 +79,9 @@ class Dockly::Deb
     raise "Package wasn't created!" unless File.exist?(build_path)
     info "uploading package to s3"
     Dockly::AWS.s3.put_bucket(s3_bucket) rescue nil
-    Dockly::AWS.s3.put_object(s3_bucket, s3_object_name, File.new(build_path))
+    Dockly::AWS.s3.put_object(s3_bucket, s3_object_name, File.new(build_path), {
+      'x-amz-acl' => 'bucket-owner-full-control'
+    })
   end
 
   def s3_url
