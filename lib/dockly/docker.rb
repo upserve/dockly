@@ -36,7 +36,9 @@ class Dockly::Docker
     return if s3_bucket.nil?
     object = s3_object_for(sha)
     info "Copying s3://#{s3_bucket}/#{object} to #{s3_bucket}/#{s3_object}"
-    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object)
+    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object, {
+      'x-amz-acl' => 'bucket-owner-full-control'
+    })
     info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object}"
   end
 
