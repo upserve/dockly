@@ -1,172 +1,153 @@
 require 'rake'
 require 'dockly'
 
-class Rake::DebTask < Rake::Task
-  def needed?
-    raise "Package does not exist" if package.nil?
-    !!ENV['FORCE'] || !package.exists?
+module Dockly::RakeHelper
+  module_function
+
+  def find_deb!(name)
+    deb = Dockly.debs[name]
+    raise "No deb named #{name}" if deb.nil?
+    deb
   end
 
-  def package
-    Dockly::Deb[name.split(':').last.to_sym]
-  end
-end
-
-class Rake::RpmTask < Rake::Task
-  def needed?
-    raise "Package does not exist" if package.nil?
-    !!ENV['FORCE'] || !package.exists?
+  def find_docker!(name)
+    docker = Dockly.dockers[name]
+    raise "No docker named #{name}" if docker.nil?
+    docker
   end
 
-  def package
-    Dockly::Rpm[name.split(':').last.to_sym]
-  end
-end
-
-class Rake::DockerTask < Rake::Task
-  def needed?
-    raise "Docker does not exist" if docker.nil?
-    !docker.exists?
-  end
-
-  def docker
-    Dockly::Docker[name.split(':').last.to_sym]
-  end
-end
-
-module Rake::DSL
-  def deb(*args, &block)
-    Rake::DebTask.define_task(*args, &block)
-  end
-
-  def rpm(*args, &block)
-    Rake::RpmTask.define_task(*args, &block)
-  end
-
-  def docker(*args, &block)
-    Rake::DockerTask.define_task(*args, &block)
+  def find_rpm!(name)
+    rpm = Dockly.rpms[name]
+    raise "No rpm named #{name}" if rpm.nil?
+    rpm
   end
 end
 
 namespace :dockly do
   task :load do
-    raise "No dockly.rb found!" unless File.exist?('dockly.rb')
+    raise "No #{Dockly.load_file} found!" unless File.exist?(Dockly.load_file)
+    load Dockly.load_file
   end
 
-  prepare_targets = []
-  upload_targets = []
-  build_targets = []
-  copy_targets = []
-
   namespace :deb do
-    Dockly.debs.values.each do |inst|
-      namespace :prepare do
-        task inst.name => 'dockly:load' do |name|
-          inst.create_package!
-        end
-      end
+    task :prepare, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper.find_deb!(args[:name]).create_package!
+    end
 
-      namespace :upload do
-        deb inst.name => 'dockly:load' do |name|
-          inst.upload_to_s3
-        end
-      end
+    task :upload, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper.find_deb!(args[:name]).upload_to_s3
+    end
 
-      namespace :copy do
-        task inst.name => 'dockly:load' do |name|
-          inst.copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
-        end
-      end
+    task :copy, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper
+        .find_deb!(args[:name])
+        .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+    end
 
-      deb inst.name => 'dockly:load' do |name|
-        inst.build
-      end
-
-      prepare_targets << "dockly:deb:prepare:#{inst.name}"
-      upload_targets << "dockly:deb:upload:#{inst.name}"
-      copy_targets << "dockly:deb:copy:#{inst.name}"
-      build_targets << "dockly:deb:#{inst.name}"
+    task :build, [:name] => 'dockly:load' do |t, args|
+      deb = Dockly::RakeHelper.find_deb!(args[:name])
+      deb.build unless deb.exists?
     end
   end
 
   namespace :rpm do
-    Dockly.rpms.values.each do |inst|
-      namespace :prepare do
-        task inst.name => 'dockly:load' do |name|
-          inst.create_package!
-        end
-      end
+    task :prepare, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper.find_rpm!(args[:name]).create_package!
+    end
 
-      namespace :upload do
-        rpm inst.name => 'dockly:load' do |name|
-          inst.upload_to_s3
-        end
-      end
+    task :upload, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper.find_rpm!(args[:name]).upload_to_s3
+    end
 
-      namespace :copy do
-        task inst.name => 'dockly:load' do |name|
-          inst.copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
-        end
-      end
+    task :copy, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper
+        .find_rpm!(args[:name])
+        .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+    end
 
-      rpm inst.name => 'dockly:load' do |name|
-        inst.build
-      end
-
-      prepare_targets << "dockly:rpm:prepare:#{inst.name}"
-      upload_targets << "dockly:rpm:upload:#{inst.name}"
-      copy_targets << "dockly:rpm:copy:#{inst.name}"
-      build_targets << "dockly:rpm:#{inst.name}"
+    task :build, [:name] => 'dockly:load' do |t, args|
+      rpm = Dockly::RakeHelper.find_rpm!(args[:name])
+      rpm.build unless rpm.exists?
     end
   end
 
   namespace :docker do
-    Dockly.dockers.values.each do |inst|
-      # For backwards compatibility
-      namespace :noexport do
-        task inst.name => "dockly:docker:prepare:#{inst.name}"
-      end
+    task :prepare, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper.find_docker!(args[:name]).generate_build
+    end
 
-      namespace :prepare do
-        task inst.name => 'dockly:load' do
-          Thread.current[:rake_task] = inst.name
-          inst.generate_build
-        end
-      end
+    task :upload, [:name] => 'dockly:load' do |t, args|
+      docker = Dockly::RakeHelper.find_docker!(args[:name])
+      docker.export_only unless docker.exists?
+    end
 
-      namespace :upload do
-        docker inst.name => 'dockly:load' do
-          Thread.current[:rake_task] = inst.name
-          inst.export_only
-        end
-      end
+    task :copy, [:name] => 'dockly:load' do |t, args|
+      Dockly::RakeHelper
+        .find_docker!(args[:name])
+        .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+    end
 
-      namespace :copy do
-        task inst.name => 'dockly:load' do
-          Thread.current[:rake_task] = inst.name
-          inst.copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
-        end
-      end
-
-      docker inst.name => 'dockly:load' do
-        Thread.current[:rake_task] = inst.name
-        inst.generate!
-      end
-
-      # Docker image will be generated by 'dockly:deb:package'
-      unless inst.s3_bucket.nil?
-        prepare_targets << "dockly:docker:prepare:#{inst.name}"
-        upload_targets << "dockly:docker:upload:#{inst.name}"
-        copy_targets << "dockly:docker:copy:#{inst.name}"
-        build_targets << "dockly:docker:#{inst.name}"
-      end
+    task :build, [:name] => 'dockly:load' do |t, args|
+      docker = Dockly::RakeHelper.find_docker!(args[:name])
+      docker.generate! unless docker.exists?
     end
   end
 
-  multitask :prepare_all => prepare_targets
-  multitask :upload_all => upload_targets
-  multitask :build_all => build_targets
-  multitask :copy_all => copy_targets
+  task :prepare_all => 'dockly:load' do
+    Dockly.debs.values.each do |deb|
+      Rake::Task['dockly:deb:prepare'].invoke(deb.name)
+    end
+
+    Dockly.rpms.values.each do |rpm|
+      Rake::Task['dockly:rpm:prepare'].invoke(rpm.name)
+    end
+
+    Dockly.dockers.values.each do |docker|
+      Rake::Task['dockly:docker:prepare'].invoke(docker.name)
+    end
+  end
+
+  task :upload_all => 'dockly:load' do
+    Dockly.debs.values.each do |deb|
+      Rake::Task['dockly:deb:upload'].invoke(deb.name)
+    end
+
+    Dockly.rpms.values.each do |rpm|
+      Rake::Task['dockly:rpm:upload'].invoke(rpm.name)
+    end
+
+    Dockly.dockers.values.each do |docker|
+      Rake::Task['dockly:docker:upload'].invoke(docker.name)
+    end
+  end
+
+  task :build_all => 'dockly:load' do
+    Dockly.debs.values.each do |deb|
+      Rake::Task['dockly:deb:build'].invoke(deb.name)
+    end
+
+    Dockly.rpms.values.each do |rpm|
+      Rake::Task['dockly:rpm:build'].invoke(rpm.name)
+    end
+
+    Dockly.dockers.values.each do |docker|
+      Rake::Task['dockly:docker:build'].invoke(docker.name)
+    end
+  end
+
+  task :copy_all => 'dockly:load' do
+    Dockly.debs.values.each do |deb|
+      Rake::Task['dockly:deb:copy'].invoke(deb.name)
+    end
+
+    Dockly.rpms.values.each do |rpm|
+      Rake::Task['dockly:rpm:copy'].invoke(rpm.name)
+    end
+
+    Dockly.dockers.values.each do |docker|
+      Rake::Task['dockly:docker:copy'].invoke(docker.name)
+    end
+  end
 
   task :build_or_copy_all do
     if Dockly::History.duplicate_build?
