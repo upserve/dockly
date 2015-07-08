@@ -4,5 +4,5 @@ module Dockly
   PATCH = 0
   RELEASE = 'pre'
 
-  VERSION = [MAJOR, MINOR, RELEASE, PATCH].compact.join('.')
+  VERSION = [MAJOR, MINOR, PATCH, RELEASE].compact.join('.')
 end
