@@ -240,7 +240,7 @@ class Dockly::Docker
       if s3_bucket.nil?
         output = File.open(tar_path, 'wb')
       else
-        output = Dockly::AWS::S3Writer.new(connection, s3_bucket, s3_object)
+        output = Dockly::AWS::S3Writer.new(Dockly.s3, s3_bucket, s3_object)
       end
 
       gzip_output = Zlib::GzipWriter.new(output)
