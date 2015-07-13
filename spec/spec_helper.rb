@@ -10,6 +10,7 @@ Fog.mock!
 Dockly::AWS.aws_access_key_id = 'MOCK_KEY'
 Dockly::AWS.aws_secret_access_key = 'MOCK_SECRET'
 Dockly::Util::Logger.disable! unless ENV['ENABLE_LOGGER'] == 'true'
+Dockly.aws_region 'us-east-1'
 
 RSpec.configure do |config|
   config.mock_with :rspec
