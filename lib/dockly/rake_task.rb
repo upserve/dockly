@@ -95,57 +95,57 @@ namespace :dockly do
 
   task :prepare_all => 'dockly:load' do
     Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:prepare'].invoke(deb.name)
+      Rake::Task['dockly:deb:prepare'].execute(deb.name)
     end
 
     Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:prepare'].invoke(rpm.name)
+      Rake::Task['dockly:rpm:prepare'].execute(rpm.name)
     end
 
     Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:prepare'].invoke(docker.name)
+      Rake::Task['dockly:docker:prepare'].execute(docker.name)
     end
   end
 
   task :upload_all => 'dockly:load' do
     Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:upload'].invoke(deb.name)
+      Rake::Task['dockly:deb:upload'].execute(deb.name)
     end
 
     Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:upload'].invoke(rpm.name)
+      Rake::Task['dockly:rpm:upload'].execute(rpm.name)
     end
 
     Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:upload'].invoke(docker.name)
+      Rake::Task['dockly:docker:upload'].execute(docker.name)
     end
   end
 
   task :build_all => 'dockly:load' do
     Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:build'].invoke(deb.name)
+      Rake::Task['dockly:deb:build'].execute(deb.name)
     end
 
     Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:build'].invoke(rpm.name)
+      Rake::Task['dockly:rpm:build'].execute(rpm.name)
     end
 
     Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:build'].invoke(docker.name)
+      Rake::Task['dockly:docker:build'].execute(docker.name)
     end
   end
 
   task :copy_all => 'dockly:load' do
     Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:copy'].invoke(deb.name)
+      Rake::Task['dockly:deb:copy'].execute(deb.name)
     end
 
     Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:copy'].invoke(rpm.name)
+      Rake::Task['dockly:rpm:copy'].execute(rpm.name)
     end
 
     Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:copy'].invoke(docker.name)
+      Rake::Task['dockly:docker:copy'].execute(docker.name)
     end
   end
 
