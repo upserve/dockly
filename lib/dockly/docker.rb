@@ -148,7 +148,7 @@ class Dockly::Docker
     FileUtils.rm_rf(git_archive_dir)
     FileUtils.mkdir_p(git_archive_dir)
     info "archiving #{Dockly::Util::Git.sha}"
-    File.open(git_archive_path, 'r') do |file|
+    File.open(git_archive_path, 'wb') do |file|
       Dockly::Util::Git.archive(Dockly::Util::Git.sha, prefix, file)
     end
     info "made the git archive for sha #{Dockly::Util::Git.sha}"
