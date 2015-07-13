@@ -135,8 +135,10 @@ describe Dockly::Docker do
         let(:data) { 'sweet, sweet data' }
 
         before do
-          subject.send(:connection).put_bucket('bucket')
-          subject.send(:connection).put_object('bucket', 'object', data)
+          allow(Dockly.s3)
+            .to receive(:get_object)
+            .with(bucket: 'bucket', object: object)
+            .and_return
         end
 
         it 'pulls the file from S3' do
