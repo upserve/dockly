@@ -5,6 +5,7 @@ require 'fog'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 require 'rugged'
+require 'aws-sdk'
 
 module Dockly
   attr_reader :instance, :git_sha
@@ -73,9 +74,18 @@ module Dockly
     @git_sha ||= Dockly::Util::Git.sha
   end
 
+  def aws_region(region = nil)
+    @aws_region = region unless region.nil?
+    @aws_region
+  end
+
+  def s3
+    @s3 ||= Aws::S3::Client.new(region: aws_region)
+  end
+
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,
                   :deb,  :rpm,  :docker,  :foreman, :git_sha,
-                  :debs, :rpms, :dockers, :foremans
+                  :debs, :rpms, :dockers, :foremans, :aws_region, :s3
 end
 
 require 'dockly/rake_task'
