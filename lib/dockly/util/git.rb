@@ -1,7 +1,7 @@
 require 'grit'
 
 module Dockly::Util::Git
-  extend self
+  module_function
 
   def git_repo
     @git_repo ||= Grit::Repo.new('.')
