@@ -70,7 +70,7 @@ module Dockly
   end
 
   def git_sha
-    @git_sha ||= Dockly::Util::Git.git_sha
+    @git_sha ||= Dockly::Util::Git.sha
   end
 
   module_function :inst, :load_inst, :setup, :load_file, :load_file=,

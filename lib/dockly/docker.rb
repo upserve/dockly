@@ -147,11 +147,11 @@ class Dockly::Docker
 
     FileUtils.rm_rf(git_archive_dir)
     FileUtils.mkdir_p(git_archive_dir)
-    info "archiving #{Dockly::Util::Git.git_sha}"
-    Grit::Git.with_timeout(120) do
-      Dockly::Util::Git.git_repo.archive_to_file(Dockly::Util::Git.git_sha, prefix, git_archive_path, 'tar', 'cat')
+    info "archiving #{Dockly::Util::Git.sha}"
+    File.open(git_archive_path, 'r') do |file|
+      Dockly::Util::Git.archive(Dockly::Util::Git.sha, prefix, file)
     end
-    info "made the git archive for sha #{Dockly::Util::Git.git_sha}"
+    info "made the git archive for sha #{Dockly::Util::Git.sha}"
     git_archive_path
   end
 
@@ -302,7 +302,7 @@ class Dockly::Docker
   end
 
   def s3_object
-    s3_object_for(Dockly::Util::Git.git_sha)
+    s3_object_for(Dockly::Util::Git.sha)
   end
 
   def s3_object_for(sha)
