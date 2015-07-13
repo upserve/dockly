@@ -191,7 +191,9 @@ describe Dockly::Deb do
 
     context 'when the object does exist' do
       before do
-        Dockly::AWS.s3.stub(:head_object).and_return {}
+        allow(Dockly.s3)
+          .to receive(:head_object)
+          .and_return({})
       end
 
       it 'is true' do
@@ -201,7 +203,9 @@ describe Dockly::Deb do
 
     context 'when the object does not exist' do
       before do
-        Dockly::AWS.s3.stub(:head_object).and_raise(Excon::Errors::NotFound.new "NotFound")
+        allow(Dockly.s3)
+          .to receive(:head_object)
+          .and_raise(StandardError.new('object does not exist'))
       end
 
       it 'is true' do
@@ -224,7 +228,7 @@ describe Dockly::Deb do
 
     context 'when the s3_bucket is nil' do
       it 'does nothing' do
-        Dockly::AWS.should_not_receive(:s3)
+        expect(Dockly).to_not receive(:s3)
         subject.upload_to_s3
       end
     end
@@ -244,14 +248,14 @@ describe Dockly::Deb do
       context 'when the package has been created' do
         before { subject.create_package! }
 
-        it 'creates the s3 bucket' do
-          subject.upload_to_s3
-          Dockly::AWS.s3.get_bucket(bucket_name).body.should_not be_nil
-        end
-
         it 'inserts the deb package into that bucket' do
+          expect(Dockly.s3).to receive(:put_object) do |hash|
+            expect(hash[:bucket]).to eq(bucket_name)
+            expect(hash[:key]).to eq(subject.s3_object_name)
+            expect(hash).to have_key(:body)
+          end
+
           subject.upload_to_s3
-          Dockly::AWS.s3.get_bucket(bucket_name, subject.s3_object_name).body.should_not be_nil
         end
       end
     end
