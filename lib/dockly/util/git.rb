@@ -1,13 +1,38 @@
-require 'grit'
-
 module Dockly::Util::Git
-  extend self
+  module_function
 
-  def git_repo
-    @git_repo ||= Grit::Repo.new('.')
+  def repo
+    @repo ||= Rugged::Repository.discover('.')
   end
 
-  def git_sha
-    @git_sha ||= git_repo.git.show.lines.first.chomp.match(/^commit ([a-f0-9]+)$/)[1][0..6] rescue 'unknown'
+  def sha
+    return @sha if @sha
+    @sha = repo.head.target.oid[0..6]
+  rescue
+    @sha = 'unknown'
+  end
+
+  def ls_files(oid)
+    target = repo.lookup(oid)
+    target = target.target until target.type == :commit
+    ary = []
+    target.tree.walk(:postorder) do |root, entry|
+      next unless entry[:type] == :blob
+      name = File.join(root, entry[:name]).gsub(/\A\//, '')
+      ary << entry.merge(name: name)
+    end
+    ary
+  end
+
+  def archive(oid, prefix, output)
+    Gem::Package::TarWriter.new(output) do |tar|
+      ls_files(oid).each do |blob|
+        name, mode = blob.values_at(:name, :filemode)
+        prefixed = File.join(prefix, name)
+        tar.add_file(prefixed, mode) do |tar_out|
+          tar_out.write(File.read(name))
+        end
+      end
+    end
   end
 end

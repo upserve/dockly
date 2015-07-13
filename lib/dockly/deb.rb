@@ -85,7 +85,7 @@ class Dockly::Deb
   end
 
   def s3_object_name
-    s3_object_name_for(Dockly::Util::Git.git_sha)
+    s3_object_name_for(Dockly::Util::Git.sha)
   end
 
   def s3_object_name_for(sha)
