@@ -122,30 +122,30 @@ namespace :dockly do
   end
 
   task :build_all => 'dockly:load' do
-    Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:build'].execute(deb.name)
+    Dockly.debs.keys.each do |deb|
+      Rake::Task['dockly:deb:build'].execute(Rake::TaskArguments.new([:name], [deb]))
     end
 
-    Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:build'].execute(rpm.name)
+    Dockly.rpms.keys.each do |rpm|
+      Rake::Task['dockly:rpm:build'].execute(Rake::TaskArguments.new([:name], [rpm]))
     end
 
-    Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:build'].execute(docker.name)
+    Dockly.dockers.keys.each do |docker|
+      Rake::Task['dockly:docker:build'].execute(Rake::TaskArguments.new([:name], [docker]))
     end
   end
 
   task :copy_all => 'dockly:load' do
-    Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:copy'].execute(deb.name)
+    Dockly.debs.keys.each do |deb|
+      Rake::Task['dockly:deb:copy'].execute(Rake::TaskArguments.new([:name], [deb]))
     end
 
-    Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:copy'].execute(rpm.name)
+    Dockly.rpms.keys.each do |rpm|
+      Rake::Task['dockly:rpm:copy'].execute(Rake::TaskArguments.new([:name], [rpm]))
     end
 
-    Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:copy'].execute(docker.name)
+    Dockly.dockers.keys.each do |docker|
+      Rake::Task['dockly:docker:copy'].execute(Rake::TaskArguments.new([:name], [docker]))
     end
   end
 
