@@ -25,7 +25,7 @@ describe Dockly::BuildCache::Base do
       before do
         allow(subject.connection)
           .to receive(:head_object)
-          .and_raise(StandardError)
+          .and_raise(Aws::S3::Errors::NoSuchKey.new('Some Error', 500))
       end
 
       its(:up_to_date?) { should be_false }
@@ -42,7 +42,7 @@ describe Dockly::BuildCache::Base do
         .and_return(object)
       allow(object)
         .to receive(:body)
-        .and_return('hey dad')
+        .and_return(StringIO.new('hey dad').tap(&:rewind))
     end
 
     after do

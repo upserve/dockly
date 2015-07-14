@@ -137,8 +137,8 @@ describe Dockly::Docker do
         before do
           allow(Dockly.s3)
             .to receive(:get_object)
-            .with(bucket: 'bucket', object: object)
-            .and_return
+            .with(bucket: 'bucket', key: 'object')
+            .and_yield(data)
         end
 
         it 'pulls the file from S3' do
