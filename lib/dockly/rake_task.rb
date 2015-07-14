@@ -24,7 +24,15 @@ module Dockly::RakeHelper
 end
 
 namespace :dockly do
-  task :load do
+  # Dockly needs to be able to perform HTTP requests, and unfortunately for us
+  # WebMock is enabled by default.
+  task :enable_http do
+    if defined?(WebMock::HttpLibAdapters::NetHttpAdapter)
+      WebMock::HttpLibAdapters::NetHttpAdapter.disable!
+    end
+  end
+
+  task load: :enable_http do
     raise "No #{Dockly.load_file} found!" unless File.exist?(Dockly.load_file)
     load Dockly.load_file
   end
