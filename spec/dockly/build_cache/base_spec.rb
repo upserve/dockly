@@ -13,15 +13,19 @@ describe Dockly::BuildCache::Base do
 
   describe '#up_to_date?' do
     context 'when the object exists in s3' do
-      before { subject.connection.stub(:head_object) }
+      before do
+        allow(subject.connection)
+          .to receive(:head_object)
+      end
 
       its(:up_to_date?) { should be_true }
     end
 
     context 'when the object does not exist in s3' do
       before do
-        subject.connection.stub(:head_object)
-            .and_raise(Excon::Errors::NotFound.new('help'))
+        allow(subject.connection)
+          .to receive(:head_object)
+          .and_raise(StandardError)
       end
 
       its(:up_to_date?) { should be_false }
@@ -33,8 +37,12 @@ describe Dockly::BuildCache::Base do
     let(:object) { double(:object) }
 
     before do
-      subject.connection.stub(:get_object).and_return object
-      object.stub(:body).and_return 'hey dad'
+      allow(subject.connection)
+        .to receive(:get_object)
+        .and_return(object)
+      allow(object)
+        .to receive(:body)
+        .and_return('hey dad')
     end
 
     after do
@@ -50,8 +58,8 @@ describe Dockly::BuildCache::Base do
 
   describe '#s3_object' do
     before do
-      subject.stub(:s3_object_prefix) { 'lol' }
-      subject.stub(:hash_output) { 'lel' }
+      allow(subject).to receive(:s3_object_prefix).and_return('lol')
+      allow(subject).to receive(:hash_output).and_return('lel')
     end
 
     context "without an arch_output" do
