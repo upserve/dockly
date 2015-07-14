@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'docker-api', '>= 1.14.0'
   gem.add_dependency 'dockly-util', '~> 0.0.9'
   gem.add_dependency 'excon'
-  gem.add_dependency 'aws-sdk', '~> 2.1'
+  gem.add_dependency 'aws-sdk', '~> 2.0'
   gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 1.2.0'
   gem.add_dependency 'rugged'
