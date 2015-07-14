@@ -11,7 +11,6 @@ module Dockly
   attr_reader :instance, :git_sha
   attr_writer :load_file
 
-  autoload :AWS, 'dockly/aws'
   autoload :Foreman, 'dockly/foreman'
   autoload :BashBuilder, 'dockly/bash_builder'
   autoload :BuildCache, 'dockly/build_cache'
@@ -19,6 +18,7 @@ module Dockly
   autoload :Deb, 'dockly/deb'
   autoload :History, 'dockly/history'
   autoload :Rpm, 'dockly/rpm'
+  autoload :S3Writer, 'dockly/s3_writer'
   autoload :TarDiff, 'dockly/tar_diff'
   autoload :VERSION, 'dockly/version'
 

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Dockly::AWS::S3Writer do
+describe Dockly::S3Writer do
   let(:connection) { double(:connection) }
   let(:bucket) { 'test_bucket' }
   let(:object) { 'object_name.tar' }

@@ -184,7 +184,7 @@ describe Dockly::Docker do
     context "with an S3 export" do
       let(:export) { double(:export) }
       before do
-        expect(Dockly::AWS::S3Writer).to receive(:new).and_return(export)
+        expect(Dockly::S3Writer).to receive(:new).and_return(export)
         expect(export).to receive(:write).once
         expect(export).to receive(:close).once
         subject.s3_bucket "test-bucket"
