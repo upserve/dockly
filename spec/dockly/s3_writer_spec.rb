@@ -40,7 +40,7 @@ describe Dockly::S3Writer do
 
       allow(connection)
         .to receive(:upload_part)
-        .with(bucket: bucket, key: object, upload_id: upload_id, part: 1, body: io)
+        .with(bucket: bucket, key: object, upload_id: upload_id, part_number: 1, body: io)
         .and_return(upload_response)
     end
 

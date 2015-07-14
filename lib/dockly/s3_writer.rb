@@ -25,7 +25,7 @@ module Dockly
         bucket: s3_bucket,
         key: s3_object,
         upload_id: upload_id,
-        part: @parts.length.succ,
+        part_number: @parts.length.succ,
         body: buffer
       )
       @parts << res.etag
