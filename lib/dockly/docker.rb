@@ -358,7 +358,7 @@ class Dockly::Docker
     Dockly.s3.head_object(bucket: s3_bucket, key: s3_object)
     info "#{name}: found package: #{s3_url}"
     true
-  rescue
+  rescue Aws::S3::Errors::NoSuchKey
     info "#{name}: could not find package: #{s3_url}"
     false
   end

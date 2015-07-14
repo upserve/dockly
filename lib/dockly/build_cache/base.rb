@@ -50,7 +50,7 @@ class Dockly::BuildCache::Base
     ensure_present! :s3_bucket, :s3_object_prefix
     connection.head_object(bucket: s3_bucket, key: s3_object(hash_output))
     true
-  rescue Aws::S3::Errors::ServiceError
+  rescue Aws::S3::Errors::NoSuchKey
     false
   end
 
@@ -73,7 +73,7 @@ class Dockly::BuildCache::Base
       info 'Build cache already exists locally'
       File.open(file_path, 'rb')
     end
-  rescue Aws::S3::Errors::ServiceError
+  rescue Aws::S3::Errors::NoSuchKey
     nil
   end
 
