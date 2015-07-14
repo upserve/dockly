@@ -5,8 +5,6 @@ require 'rspec'
 require 'dockly'
 require 'pry'
 
-Fog.mock!
-
 Dockly::Util::Logger.disable! unless ENV['ENABLE_LOGGER'] == 'true'
 Dockly.aws_region 'us-east-1'
 

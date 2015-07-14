@@ -1,7 +1,6 @@
 require 'dockly/util'
 require 'dockly/util/tar'
 require 'dockly/util/git'
-require 'fog'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 require 'rugged'
