@@ -50,7 +50,7 @@ class Dockly::BuildCache::Base
     ensure_present! :s3_bucket, :s3_object_prefix
     connection.head_object(bucket: s3_bucket, key: s3_object(hash_output))
     true
-  rescue Excon::Errors::NotFound
+  rescue Aws::S3::Errors::ServiceError
     false
   end
 
@@ -67,13 +67,13 @@ class Dockly::BuildCache::Base
       debug 'Pulled build cache from s3'
 
       file = File.open(file_path, 'w+b')
-      file.write(object.body)
+      file.write(object.body.read)
       file.tap(&:rewind)
     else
       info 'Build cache already exists locally'
       File.open(file_path, 'rb')
     end
-  rescue Excon::Errors::NotFound
+  rescue Aws::S3::Errors::ServiceError
     nil
   end
 
@@ -122,6 +122,6 @@ class Dockly::BuildCache::Base
   end
 
   def connection
-    Dockly::AWS.s3
+    Dockly.s3
   end
 end
