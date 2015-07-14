@@ -75,7 +75,7 @@ module Dockly
 
   def aws_region(region = nil)
     @aws_region = region unless region.nil?
-    @aws_region
+    @aws_region || 'us-east-1'
   end
 
   def s3
