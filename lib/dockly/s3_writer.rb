@@ -21,7 +21,7 @@ module Dockly
 
     def upload_buffer
       num = @parts.length.succ
-      debug "Writing a chunk ##{num} to s3://#{s3_bucket}/#{s3_object} with upload id #{upload_id}"
+      debug "Writing chunk ##{num} to s3://#{s3_bucket}/#{s3_object} with upload id: #{upload_id}"
       res = connection.upload_part(
         bucket: s3_bucket,
         key: s3_object,
