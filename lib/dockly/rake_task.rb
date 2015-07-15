@@ -109,15 +109,15 @@ namespace :dockly do
 
   task :prepare_all => 'dockly:init' do
     Dockly.debs.keys.each do |deb|
-      Rake::Task['dockly:deb:prepare'].tap(&:reenable).execute(deb)
+      Rake::Task['dockly:deb:prepare'].tap(&:reenable).invoke(deb)
     end
 
     Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:prepare'].tap(&:reenable).execute(rpm)
+      Rake::Task['dockly:rpm:prepare'].tap(&:reenable).invoke(rpm)
     end
 
     Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:prepare'].tap(&:reenable).execute(docker)
+      Rake::Task['dockly:docker:prepare'].tap(&:reenable).invoke(docker)
     end
   end
 
