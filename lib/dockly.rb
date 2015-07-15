@@ -73,6 +73,20 @@ module Dockly
     @git_sha ||= Dockly::Util::Git.sha
   end
 
+  def assume_role(role_name = nil)
+    @assume_role = role_name if role_name
+    @assume_role
+  end
+
+  def perform_role_assumption
+    return if assume_role.nil?
+    Aws.config.update(
+      credentials: Aws::AssumeRoleCredentials.new(
+        role_arn: assume_role, role_session_name: 'dockly'
+      )
+    )
+  end
+
   def aws_region(region = nil)
     @aws_region = region unless region.nil?
     @aws_region || 'us-east-1'
