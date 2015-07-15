@@ -32,76 +32,82 @@ namespace :dockly do
     end
   end
 
-  task load: :enable_http do
+  task :load do
     raise "No #{Dockly.load_file} found!" unless File.exist?(Dockly.load_file)
     load Dockly.load_file
   end
 
+  task :assume_role => 'dockly:load' do
+    Dockly.perform_role_assumption
+  end
+
+  task :init => ['dockly:enable_http', 'dockly:load', 'dockly:assume_role']
+
   namespace :deb do
-    task :prepare, [:name] => 'dockly:load' do |t, args|
+    task :prepare, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper.find_deb!(args[:name]).create_package!
     end
 
-    task :upload, [:name] => 'dockly:load' do |t, args|
+    task :upload, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper.find_deb!(args[:name]).upload_to_s3
     end
 
-    task :copy, [:name] => 'dockly:load' do |t, args|
+    task :copy, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper
         .find_deb!(args[:name])
         .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
     end
 
-    task :build, [:name] => 'dockly:load' do |t, args|
+    task :build, [:name] => 'dockly:init' do |t, args|
       deb = Dockly::RakeHelper.find_deb!(args[:name])
       deb.build unless deb.exists?
     end
   end
 
   namespace :rpm do
-    task :prepare, [:name] => 'dockly:load' do |t, args|
+    task :prepare, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper.find_rpm!(args[:name]).create_package!
     end
 
-    task :upload, [:name] => 'dockly:load' do |t, args|
+    task :upload, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper.find_rpm!(args[:name]).upload_to_s3
     end
 
-    task :copy, [:name] => 'dockly:load' do |t, args|
+    task :copy, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper
         .find_rpm!(args[:name])
         .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
     end
 
-    task :build, [:name] => 'dockly:load' do |t, args|
+    task :build, [:name] => 'dockly:init' do |t, args|
       rpm = Dockly::RakeHelper.find_rpm!(args[:name])
       rpm.build unless rpm.exists?
     end
   end
 
   namespace :docker do
-    task :prepare, [:name] => 'dockly:load' do |t, args|
+    task :prepare, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper.find_docker!(args[:name]).generate_build
     end
 
-    task :upload, [:name] => 'dockly:load' do |t, args|
+    task :upload, [:name] => 'dockly:init' do |t, args|
       docker = Dockly::RakeHelper.find_docker!(args[:name])
       docker.export_only unless docker.exists?
     end
 
-    task :copy, [:name] => 'dockly:load' do |t, args|
+    task :copy, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper
         .find_docker!(args[:name])
         .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
     end
 
-    task :build, [:name] => 'dockly:load' do |t, args|
+    task :build, [:name] => 'dockly:init' do |t, args|
       docker = Dockly::RakeHelper.find_docker!(args[:name])
       docker.generate! unless docker.exists?
     end
   end
 
-  task :prepare_all => 'dockly:load' do
+  task :prepare_all => 'dockly:init' do
     Dockly.debs.values.each do |deb|
       Rake::Task['dockly:deb:prepare'].execute(deb.name)
     end
@@ -115,7 +121,7 @@ namespace :dockly do
     end
   end
 
-  task :upload_all => 'dockly:load' do
+  task :upload_all => 'dockly:init' do
     Dockly.debs.values.each do |deb|
       Rake::Task['dockly:deb:upload'].execute(deb.name)
     end
@@ -129,7 +135,7 @@ namespace :dockly do
     end
   end
 
-  task :build_all => 'dockly:load' do
+  task :build_all => 'dockly:init' do
     Dockly.debs.keys.each do |deb|
       Rake::Task['dockly:deb:build'].execute(Rake::TaskArguments.new([:name], [deb]))
     end
@@ -143,7 +149,7 @@ namespace :dockly do
     end
   end
 
-  task :copy_all => 'dockly:load' do
+  task :copy_all => 'dockly:init' do
     Dockly.debs.keys.each do |deb|
       Rake::Task['dockly:deb:copy'].execute(Rake::TaskArguments.new([:name], [deb]))
     end
