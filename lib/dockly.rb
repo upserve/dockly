@@ -7,6 +7,8 @@ require 'rugged'
 require 'aws-sdk'
 
 module Dockly
+  LOAD_FILE = 'dockly.rb'
+
   attr_reader :instance, :git_sha
   attr_writer :load_file
 
@@ -21,7 +23,7 @@ module Dockly
   autoload :TarDiff, 'dockly/tar_diff'
   autoload :VERSION, 'dockly/version'
 
-  LOAD_FILE = 'dockly.rb'
+  module_function
 
   def load_file
     @load_file || LOAD_FILE
@@ -46,27 +48,6 @@ module Dockly
       :dockers => Dockly::Docker.instances,
       :foremans => Dockly::Foreman.instances
     }
-  end
-
-  {
-    :deb => Dockly::Deb,
-    :rpm => Dockly::Rpm,
-    :docker => Dockly::Docker,
-    :foreman => Dockly::Foreman
-  }.each do |method, klass|
-    define_method(method) do |sym, &block|
-      if block.nil?
-        inst[:"#{method}s"][sym]
-      else
-        klass.new!(:name => sym, &block)
-      end
-    end
-  end
-
-  [:debs, :rpms, :dockers, :foremans].each do |method|
-    define_method(method) do
-      inst[method]
-    end
   end
 
   def git_sha
@@ -96,9 +77,30 @@ module Dockly
     @s3 ||= Aws::S3::Client.new(region: aws_region)
   end
 
-  module_function :inst, :load_inst, :setup, :load_file, :load_file=,
-                  :deb,  :rpm,  :docker,  :foreman, :git_sha,
-                  :debs, :rpms, :dockers, :foremans, :aws_region, :s3
+  [:debs, :rpms, :dockers, :foremans].each do |method|
+    define_method(method) do
+      inst[method]
+    end
+
+    module_function method
+  end
+
+  {
+    :deb => Dockly::Deb,
+    :rpm => Dockly::Rpm,
+    :docker => Dockly::Docker,
+    :foreman => Dockly::Foreman
+  }.each do |method, klass|
+    define_method(method) do |sym, &block|
+      if block.nil?
+        inst[:"#{method}s"][sym]
+      else
+        klass.new!(:name => sym, &block)
+      end
+    end
+
+    module_function method
+  end
 end
 
 require 'dockly/rake_task'
