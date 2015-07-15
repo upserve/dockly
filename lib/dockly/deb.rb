@@ -52,7 +52,11 @@ class Dockly::Deb
     ensure_present! :s3_bucket
     object = s3_object_name_for(sha)
     info "Copying s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
-    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object_name)
+    Dockly.s3.copy_object(
+      copy_source: File.join(s3_bucket, object),
+      bucket: s3_bucket,
+      key: s3_object_name
+    )
     info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
   end
 
@@ -63,7 +67,7 @@ class Dockly::Deb
 
   def exists?
     debug "#{name}: checking for package: #{s3_url}"
-    Dockly::AWS.s3.head_object(s3_bucket, s3_object_name)
+    Dockly.s3.head_object(bucket: s3_bucket, key: s3_object_name)
     info "#{name}: found package: #{s3_url}"
     true
   rescue
@@ -76,8 +80,9 @@ class Dockly::Deb
     return if s3_bucket.nil?
     raise "Package wasn't created!" unless File.exist?(build_path)
     info "uploading package to s3"
-    Dockly::AWS.s3.put_bucket(s3_bucket) rescue nil
-    Dockly::AWS.s3.put_object(s3_bucket, s3_object_name, File.new(build_path))
+    File.open(build_path, 'rb') do |file|
+      Dockly.s3.put_object(bucket: s3_bucket, key: s3_object_name, body: file)
+    end
   end
 
   def s3_url

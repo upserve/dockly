@@ -48,9 +48,9 @@ class Dockly::BuildCache::Base
 
   def up_to_date?
     ensure_present! :s3_bucket, :s3_object_prefix
-    connection.head_object(s3_bucket, s3_object(hash_output))
+    connection.head_object(bucket: s3_bucket, key: s3_object(hash_output))
     true
-  rescue Excon::Errors::NotFound
+  rescue Aws::S3::Errors::NotFound, Aws::S3::Errors::NoSuchKey
     false
   end
 
@@ -63,17 +63,17 @@ class Dockly::BuildCache::Base
     FileUtils.mkdir_p(File.dirname(file_path))
     unless File.exist?(file_path)
       debug 'Pulling build cache from s3'
-      object = connection.get_object(s3_bucket, file_name)
+      object = connection.get_object(bucket: s3_bucket, key: file_name)
       debug 'Pulled build cache from s3'
 
       file = File.open(file_path, 'w+b')
-      file.write(object.body)
+      file.write(object.body.read)
       file.tap(&:rewind)
     else
       info 'Build cache already exists locally'
       File.open(file_path, 'rb')
     end
-  rescue Excon::Errors::NotFound
+  rescue Aws::S3::Errors::NotFound, Aws::S3::Errors::NoSuchKey
     nil
   end
 
@@ -89,8 +89,12 @@ class Dockly::BuildCache::Base
 
   def push_to_s3(file)
     ensure_present! :s3_bucket, :s3_object_prefix
-    connection.put_object(s3_bucket, s3_object(hash_output), file.read)
-    connection.copy_object(s3_bucket, s3_object(hash_output), s3_bucket, s3_object("latest"))
+    connection.put_object(bucket: s3_bucket, key: s3_object(hash_output), body: file)
+    connection.copy_object(
+      copy_source: [s3_bucket, s3_object(hash_output)].join('/'),
+      bucket: s3_bucket,
+      key: s3_object('latest')
+    )
   end
 
   def file_output(file)
@@ -118,6 +122,6 @@ class Dockly::BuildCache::Base
   end
 
   def connection
-    Dockly::AWS.s3
+    Dockly.s3
   end
 end

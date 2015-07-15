@@ -68,7 +68,7 @@ describe Dockly::History do
       expect(files).to be_a(Array)
       expect(files).to include('dockly.gemspec')
       expect(files).to include('lib/dockly.rb')
-      expect(files).to include('spec/dockly/aws/s3_writer_spec.rb')
+      expect(files).to include('spec/dockly/s3_writer_spec.rb')
     end
   end
 
