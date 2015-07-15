@@ -34,7 +34,7 @@ namespace :dockly do
 
   task :load do
     raise "No #{Dockly.load_file} found!" unless File.exist?(Dockly.load_file)
-    load Dockly.load_file
+    Dockly.inst
   end
 
   task :assume_role => 'dockly:load' do
@@ -108,58 +108,58 @@ namespace :dockly do
   end
 
   task :prepare_all => 'dockly:init' do
-    Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:prepare'].execute(deb.name)
+    Dockly.debs.keys.each do |deb|
+      Rake::Task['dockly:deb:prepare'].tap(&:reenable).execute(deb)
     end
 
     Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:prepare'].execute(rpm.name)
+      Rake::Task['dockly:rpm:prepare'].tap(&:reenable).execute(rpm)
     end
 
     Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:prepare'].execute(docker.name)
+      Rake::Task['dockly:docker:prepare'].tap(&:reenable).execute(docker)
     end
   end
 
   task :upload_all => 'dockly:init' do
-    Dockly.debs.values.each do |deb|
-      Rake::Task['dockly:deb:upload'].execute(deb.name)
+    Dockly.debs.keys.each do |deb|
+      Rake::Task['dockly:deb:upload'].tap(&:reenable).invoke(deb)
     end
 
-    Dockly.rpms.values.each do |rpm|
-      Rake::Task['dockly:rpm:upload'].execute(rpm.name)
+    Dockly.rpms.keys.each do |rpm|
+      Rake::Task['dockly:rpm:upload'].tap(&:reenable).invoke(rpm)
     end
 
-    Dockly.dockers.values.each do |docker|
-      Rake::Task['dockly:docker:upload'].execute(docker.name)
+    Dockly.dockers.keys.each do |docker|
+      Rake::Task['dockly:docker:upload'].tap(&:reenable).invoke(docker)
     end
   end
 
   task :build_all => 'dockly:init' do
     Dockly.debs.keys.each do |deb|
-      Rake::Task['dockly:deb:build'].execute(Rake::TaskArguments.new([:name], [deb]))
+      Rake::Task['dockly:deb:build'].tap(&:reenable).invoke(deb)
     end
 
     Dockly.rpms.keys.each do |rpm|
-      Rake::Task['dockly:rpm:build'].execute(Rake::TaskArguments.new([:name], [rpm]))
+      Rake::Task['dockly:rpm:build'].tap(&:reenable).invoke(rpm)
     end
 
     Dockly.dockers.keys.each do |docker|
-      Rake::Task['dockly:docker:build'].execute(Rake::TaskArguments.new([:name], [docker]))
+      Rake::Task['dockly:docker:build'].tap(&:reenable).invoke(docker)
     end
   end
 
   task :copy_all => 'dockly:init' do
     Dockly.debs.keys.each do |deb|
-      Rake::Task['dockly:deb:copy'].execute(Rake::TaskArguments.new([:name], [deb]))
+      Rake::Task['dockly:deb:copy'].tap(&:reenable).invoke(deb)
     end
 
     Dockly.rpms.keys.each do |rpm|
-      Rake::Task['dockly:rpm:copy'].execute(Rake::TaskArguments.new([:name], [rpm]))
+      Rake::Task['dockly:rpm:copy'].tap(&:reenable).invoke(rpm)
     end
 
     Dockly.dockers.keys.each do |docker|
-      Rake::Task['dockly:docker:copy'].execute(Rake::TaskArguments.new([:name], [docker]))
+      Rake::Task['dockly:docker:copy'].tap(&:reenable).invoke(docker)
     end
   end
 
