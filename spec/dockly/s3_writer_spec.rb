@@ -87,7 +87,7 @@ describe Dockly::S3Writer do
     before do
       allow(connection)
         .to receive(:complete_multipart_upload)
-        .with(bucket: bucket, key: object, upload_id: upload_id, parts: [])
+        .with(bucket: bucket, key: object, upload_id: upload_id, multipart_upload: { parts: [] })
         .and_return(complete_response)
     end
 

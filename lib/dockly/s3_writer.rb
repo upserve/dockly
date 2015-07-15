@@ -46,12 +46,14 @@ module Dockly
         bucket: s3_bucket,
         key: s3_object,
         upload_id: upload_id,
-        parts: @parts.each_with_index.map do |part, idx|
-          {
-            etag: part,
-            part_number: idx.succ
-          }
-        end
+        multipart_upload: {
+          parts: @parts.each_with_index.map do |part, idx|
+            {
+              etag: part,
+              part_number: idx.succ
+            }
+          end
+        }
       )
       @closed = true
     end
