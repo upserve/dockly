@@ -27,7 +27,7 @@ module Dockly
         key: s3_object,
         upload_id: upload_id,
         part_number:num,
-        body: buffer
+        body: buffer.tap(&:rewind)
       )
       @parts << res.etag
       @buffer = StringIO.new
