@@ -103,7 +103,7 @@ namespace :dockly do
 
     task :build, [:name] => 'dockly:init' do |t, args|
       docker = Dockly::RakeHelper.find_docker!(args[:name])
-      docker.generate! unless docker.exists?
+      docker.generate! unless docker.exists? || docker.s3_bucket.nil?
     end
   end
 
