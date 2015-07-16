@@ -64,7 +64,8 @@ module Dockly
     Aws.config.update(
       credentials: Aws::AssumeRoleCredentials.new(
         role_arn: assume_role, role_session_name: 'dockly'
-      )
+      ),
+      region: aws_region
     )
   end
 
