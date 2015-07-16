@@ -1,16 +1,17 @@
 require 'dockly/util'
 require 'dockly/util/tar'
 require 'dockly/util/git'
-require 'fog'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 require 'rugged'
+require 'aws-sdk'
 
 module Dockly
+  LOAD_FILE = 'dockly.rb'
+
   attr_reader :instance, :git_sha
   attr_writer :load_file
 
-  autoload :AWS, 'dockly/aws'
   autoload :Foreman, 'dockly/foreman'
   autoload :BashBuilder, 'dockly/bash_builder'
   autoload :BuildCache, 'dockly/build_cache'
@@ -18,10 +19,11 @@ module Dockly
   autoload :Deb, 'dockly/deb'
   autoload :History, 'dockly/history'
   autoload :Rpm, 'dockly/rpm'
+  autoload :S3Writer, 'dockly/s3_writer'
   autoload :TarDiff, 'dockly/tar_diff'
   autoload :VERSION, 'dockly/version'
 
-  LOAD_FILE = 'dockly.rb'
+  module_function
 
   def load_file
     @load_file || LOAD_FILE
@@ -48,6 +50,41 @@ module Dockly
     }
   end
 
+  def git_sha
+    @git_sha ||= Dockly::Util::Git.sha
+  end
+
+  def assume_role(role_name = nil)
+    @assume_role = role_name if role_name
+    @assume_role
+  end
+
+  def perform_role_assumption
+    return if assume_role.nil?
+    Aws.config.update(
+      credentials: Aws::AssumeRoleCredentials.new(
+        role_arn: assume_role, role_session_name: 'dockly'
+      )
+    )
+  end
+
+  def aws_region(region = nil)
+    @aws_region = region unless region.nil?
+    @aws_region || 'us-east-1'
+  end
+
+  def s3
+    @s3 ||= Aws::S3::Client.new(region: aws_region)
+  end
+
+  [:debs, :rpms, :dockers, :foremans].each do |method|
+    define_method(method) do
+      inst[method]
+    end
+
+    module_function method
+  end
+
   {
     :deb => Dockly::Deb,
     :rpm => Dockly::Rpm,
@@ -61,21 +98,9 @@ module Dockly
         klass.new!(:name => sym, &block)
       end
     end
-  end
 
-  [:debs, :rpms, :dockers, :foremans].each do |method|
-    define_method(method) do
-      inst[method]
-    end
+    module_function method
   end
-
-  def git_sha
-    @git_sha ||= Dockly::Util::Git.git_sha
-  end
-
-  module_function :inst, :load_inst, :setup, :load_file, :load_file=,
-                  :deb,  :rpm,  :docker,  :foreman, :git_sha,
-                  :debs, :rpms, :dockers, :foremans
 end
 
 require 'dockly/rake_task'

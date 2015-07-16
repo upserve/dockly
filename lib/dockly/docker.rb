@@ -36,7 +36,11 @@ class Dockly::Docker
     return if s3_bucket.nil?
     object = s3_object_for(sha)
     info "Copying s3://#{s3_bucket}/#{object} to #{s3_bucket}/#{s3_object}"
-    Dockly::AWS.s3.copy_object(s3_bucket, object, s3_bucket, s3_object)
+    Dockly.s3.copy_object(
+      copy_source: File.join(s3_bucket, object),
+      bucket: s3_bucket,
+      key: s3_object
+    )
     info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object}"
   end
 
@@ -147,11 +151,11 @@ class Dockly::Docker
 
     FileUtils.rm_rf(git_archive_dir)
     FileUtils.mkdir_p(git_archive_dir)
-    info "archiving #{Dockly::Util::Git.git_sha}"
-    Grit::Git.with_timeout(120) do
-      Dockly::Util::Git.git_repo.archive_to_file(Dockly::Util::Git.git_sha, prefix, git_archive_path, 'tar', 'cat')
+    info "archiving #{Dockly::Util::Git.sha}"
+    File.open(git_archive_path, 'wb') do |file|
+      Dockly::Util::Git.archive(Dockly::Util::Git.sha, prefix, file)
     end
-    info "made the git archive for sha #{Dockly::Util::Git.git_sha}"
+    info "made the git archive for sha #{Dockly::Util::Git.sha}"
     git_archive_path
   end
 
@@ -240,7 +244,7 @@ class Dockly::Docker
       if s3_bucket.nil?
         output = File.open(tar_path, 'wb')
       else
-        output = Dockly::AWS::S3Writer.new(connection, s3_bucket, s3_object)
+        output = Dockly::S3Writer.new(Dockly.s3, s3_bucket, s3_object)
       end
 
       gzip_output = Zlib::GzipWriter.new(output)
@@ -302,7 +306,7 @@ class Dockly::Docker
   end
 
   def s3_object
-    s3_object_for(Dockly::Util::Git.git_sha)
+    s3_object_for(Dockly::Util::Git.sha)
   end
 
   def s3_object_for(sha)
@@ -330,9 +334,9 @@ class Dockly::Docker
       debug "fetching #{import}"
       File.open("#{path}.tmp", 'wb') do |file|
         case import
-          when /^s3:\/\/(?<bucket_name>.+?)\/(?<object_path>.+)$/
-            connection.get_object(Regexp.last_match[:bucket_name],
-                                  Regexp.last_match[:object_path]) do |chunk, remaining, total|
+          when /^s3:\/\/(?<bucket>.+?)\/(?<key>.+)$/
+            bucket, key = Regexp.last_match[:bucket], Regexp.last_match[:key]
+            Dockly.s3.get_object(bucket: bucket, key: key) do |chunk|
               file.write(chunk)
             end
           when /^https?:\/\//
@@ -351,21 +355,15 @@ class Dockly::Docker
   def exists?
     return false unless s3_bucket
     debug "#{name}: checking for package: #{s3_url}"
-    Dockly::AWS.s3.head_object(s3_bucket, s3_object)
+    Dockly.s3.head_object(bucket: s3_bucket, key: s3_object)
     info "#{name}: found package: #{s3_url}"
     true
-  rescue
-    info "#{name}: could not find package: " +
-         "#{s3_url}"
+  rescue Aws::S3::Errors::NotFound, Aws::S3::Errors::NoSuchKey
+    info "#{name}: could not find package: #{s3_url}"
     false
   end
 
   def repository(value = nil)
     name(value)
-  end
-
-private
-  def connection
-    Dockly::AWS.s3
   end
 end
