@@ -63,7 +63,7 @@ module Dockly
     return if assume_role.nil?
     Aws.config.update(
       credentials: Aws::AssumeRoleCredentials.new(
-        role_arn: assume_role, role_session_name: 'dockly'
+        role_arn: assume_role, role_session_name: 'dockly', region: aws_region
       ),
       region: aws_region
     )
