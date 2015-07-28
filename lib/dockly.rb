@@ -5,6 +5,7 @@ require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 require 'rugged'
 require 'aws-sdk'
+require 'open3'
 
 module Dockly
   LOAD_FILE = 'dockly.rb'
