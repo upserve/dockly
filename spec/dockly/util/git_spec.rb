@@ -43,7 +43,7 @@ describe Dockly::Util::Git do
       let(:prefix) { '/' + ('a' * 255) }
       it 'exhibits the tar extended headers' do
         subject.archive(subject.sha, prefix, io)
-        expect(io.string.include?('path=')).to be true
+        expect(io.string.include?("path=#{prefix}")).to be true
       end
     end
   end
