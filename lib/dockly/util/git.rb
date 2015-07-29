@@ -25,14 +25,18 @@ module Dockly::Util::Git
   end
 
   def archive(oid, prefix, output)
-    Gem::Package::TarWriter.new(output) do |tar|
-      ls_files(oid).each do |blob|
-        name, mode = blob.values_at(:name, :filemode)
-        prefixed = File.join(prefix, name)
-        tar.add_file(prefixed, mode) do |tar_out|
-          tar_out.write(File.read(name))
-        end
-      end
+    prefix = prefix.dup
+    unless prefix[-1] == '/'; prefix << '/'; end
+
+    cmd = ['git','archive',"--prefix=#{prefix}",'--output=/dev/stdout',oid]
+    Open3.popen3(*cmd) do |stdin, stdout, stderr, wait_thr|
+      stdin.close
+
+      output.write(stdout.read)
+      process_status = wait_thr.value
+      exit_status = process_status.exitstatus
+
+      raise "#{cmd.join(' ')} exitted non-zero: #{exit_status}" unless exit_status.zero?
     end
   end
 end
