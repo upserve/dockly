@@ -10,9 +10,6 @@ require 'open3'
 module Dockly
   LOAD_FILE = 'dockly.rb'
 
-  attr_reader :instance, :git_sha
-  attr_writer :load_file
-
   autoload :Foreman, 'dockly/foreman'
   autoload :BashBuilder, 'dockly/bash_builder'
   autoload :BuildCache, 'dockly/build_cache'
@@ -26,8 +23,16 @@ module Dockly
 
   module_function
 
+  def load_file=(file)
+    @load_file = file
+  end
+
   def load_file
     @load_file || LOAD_FILE
+  end
+
+  def instance
+    @instance
   end
 
   def inst
