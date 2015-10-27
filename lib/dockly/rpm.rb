@@ -10,6 +10,15 @@ class Dockly::Rpm < Dockly::Deb
     "#{package_name}_#{version}.#{release}_#{arch}.rpm"
   end
 
+  def startup_script
+    scripts = []
+    bb = Dockly::BashBuilder.new
+    scripts << bb.normalize_for_dockly
+    scripts << bb.get_and_install_rpm(s3_url, "/opt/dockly/#{File.basename(s3_url)}")
+
+    scripts.join("\n")
+  end
+
 private
   def convert_package
     debug "converting to rpm"

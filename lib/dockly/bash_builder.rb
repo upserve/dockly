@@ -17,6 +17,7 @@ module Dockly
 
     generate_snippet_for :normalize_for_dockly, []
     generate_snippet_for :get_and_install_deb, [:s3_url, :deb_path]
+    generate_snippet_for :get_and_install_rpm, [:s3_url, :rpm_path]
 
     generate_snippet_for :file_docker_import, [:path, :repo, :tag]
     generate_snippet_for :file_diff_docker_import, [:base_image, :diff_image, :repo, :tag]
