@@ -2,26 +2,14 @@ module Dockly::Util::Git
   module_function
 
   def repo
-    @repo ||= Rugged::Repository.discover('.')
+    @repo ||= MiniGit.new('.')
   end
 
   def sha
     return @sha if @sha
-    @sha = repo.head.target.oid
+    @sha = repo.capturing.rev_parse('HEAD').chomp
   rescue
     @sha = 'unknown'
-  end
-
-  def ls_files(oid)
-    target = repo.lookup(oid)
-    target = target.target until target.type == :commit
-    ary = []
-    target.tree.walk(:postorder) do |root, entry|
-      next unless entry[:type] == :blob
-      name = File.join(root, entry[:name]).gsub(/\A\//, '')
-      ary << entry.merge(name: name)
-    end
-    ary
   end
 
   def archive(oid, prefix, output)

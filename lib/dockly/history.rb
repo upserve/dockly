@@ -10,15 +10,14 @@ module Dockly::History
   def push_content_tag!
     fail 'An SSH agent must be running to push the tag' if ENV['SSH_AUTH_SOCK'].nil?
     refs = ["refs/tags/#{content_tag}"]
-    repo.remotes.each do |remote|
-      username = remote.url.split('@').first
-      creds = Rugged::Credentials::SshKeyFromAgent.new(username: username)
-      remote.push(refs, credentials: creds)
+    remotes = repo.capturing.remote(:v => true).split(/\n/).map{ |r| r.split.first }.uniq
+    remotes.each do |remote|
+      repo.push(remote, refs)
     end
   end
 
   def write_content_tag!
-    repo.tags.create(content_tag, repo.head.target_id, true)
+    repo.tag(content_tag, repo.capturing.rev_parse('HEAD').chomp)
   end
 
   def duplicate_build?
@@ -28,13 +27,13 @@ module Dockly::History
   def duplicate_build_sha
     return @duplicate_build_sha if @duplicate_build_sha
     sha = tags[content_tag]
-    @duplicate_build_sha = sha unless sha == repo.head.target_id
+    @duplicate_build_sha = sha unless sha == repo.capturing.rev_parse('HEAD').chomp
   end
 
   def tags
     @tags ||= Hash.new do |hash, key|
-      tag = repo.tags[key]
-      hash[key] = tag.target_id if tag
+      tag = repo.capturing.show_ref({ :tags => true }, key).chomp rescue nil
+      hash[key] = repo.capturing.show({ :format => 'format:%H' }, key).chomp if tag
     end
   end
 
@@ -43,9 +42,7 @@ module Dockly::History
   end
 
   def ls_files
-    repo.head.target.tree.walk(:preorder)
-      .map { |root, elem| [root, elem[:name]].compact.join }
-      .select(&File.method(:file?))
+    repo.capturing.ls_tree({ :name_only => true, :r => true }, 'HEAD').split
   end
 
   def content_hash_for(paths)
@@ -59,6 +56,6 @@ module Dockly::History
   end
 
   def repo
-    @repo ||= Rugged::Repository.discover('.')
+    @repo ||= MiniGit.new('.')
   end
 end

@@ -21,7 +21,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'aws-sdk', '~> 2.0'
   gem.add_dependency 'foreman'
   gem.add_dependency 'fpm', '~> 1.2.0'
-  gem.add_dependency 'rugged'
+  gem.add_dependency 'minigit', '~> 0.0.4'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'rake'
