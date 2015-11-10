@@ -9,7 +9,7 @@ describe Dockly::Util::Git do
 
   describe '#sha' do
     it 'returns a sha for the head object' do
-      expect(subject.sha).to eq(`git rev-parse HEAD`.strip)
+      expect(subject.sha).to eq(`git rev-parse HEAD`.chomp)
     end
   end
 
