@@ -67,7 +67,7 @@ class Dockly::Docker
   end
 
   def generate_build
-    Docker.options = { :read_timeout => timeout, :write_timeout => timeout }
+    Docker.options.merge!(:read_timeout => timeout, :write_timeout => timeout)
     images = {}
 
     if registry_import.nil?
