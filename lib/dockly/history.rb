@@ -33,7 +33,7 @@ module Dockly::History
   def tags
     @tags ||= Hash.new do |hash, key|
       tag = repo.capturing.show_ref({ :tags => true }, key).chomp rescue nil
-      hash[key] = repo.capturing.show({ :format => 'format:%H' }, key).chomp if tag
+      hash[key] = repo.capturing.rev_parse(key).chomp if tag
     end
   end
 
