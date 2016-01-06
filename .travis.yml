@@ -8,6 +8,7 @@ script:
   - git fetch --tags
   - CI=true bundle exec rake
 before_install:
- - sudo apt-get update -qq
- - sudo apt-get install -qq rpm
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq rpm
+  - gem install bundler
 
