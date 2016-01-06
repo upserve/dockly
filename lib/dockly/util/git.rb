@@ -7,7 +7,7 @@ module Dockly::Util::Git
 
   def sha
     return @sha if @sha
-    @sha = repo.head.target.oid[0..6]
+    @sha = repo.head.target.oid
   rescue
     @sha = 'unknown'
   end
