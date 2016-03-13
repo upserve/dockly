@@ -55,7 +55,7 @@ namespace :dockly do
     task :copy, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper
         .find_deb!(args[:name])
-        .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+        .copy_from_s3(Dockly::History.duplicate_build_sha)
     end
 
     task :build, [:name] => 'dockly:init' do |t, args|
@@ -76,7 +76,7 @@ namespace :dockly do
     task :copy, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper
         .find_rpm!(args[:name])
-        .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+        .copy_from_s3(Dockly::History.duplicate_build_sha)
     end
 
     task :build, [:name] => 'dockly:init' do |t, args|
@@ -98,7 +98,7 @@ namespace :dockly do
     task :copy, [:name] => 'dockly:init' do |t, args|
       Dockly::RakeHelper
         .find_docker!(args[:name])
-        .copy_from_s3(Dockly::History.duplicate_build_sha[0..6])
+        .copy_from_s3(Dockly::History.duplicate_build_sha)
     end
 
     task :build, [:name] => 'dockly:init' do |t, args|

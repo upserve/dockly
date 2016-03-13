@@ -3,7 +3,7 @@ require 'dockly/util/tar'
 require 'dockly/util/git'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
-require 'rugged'
+require 'minigit'
 require 'aws-sdk'
 require 'open3'
 

@@ -3,20 +3,13 @@ require 'spec_helper'
 describe Dockly::Util::Git do
   describe '#repo' do
     it 'returns the repo for the current directory' do
-      expect(subject.repo.workdir).to eq(File.expand_path('.') + '/')
+      expect(subject.repo.git_work_tree).to eq(File.expand_path('.'))
     end
   end
 
   describe '#sha' do
-    it 'returns a shortened sha for the head object' do
-      expect(subject.sha).to eq(`git rev-parse HEAD`.strip)
-    end
-  end
-
-  describe '#ls_files' do
-    it 'returns an Array of the files for the given OID' do
-      expect(subject.ls_files(subject.sha).map { |hash| hash[:name] }.sort)
-        .to eq(`git ls-files`.split("\n").sort)
+    it 'returns a sha for the head object' do
+      expect(subject.sha).to eq(`git rev-parse HEAD`.chomp)
     end
   end
 
