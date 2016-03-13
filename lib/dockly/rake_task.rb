@@ -34,7 +34,7 @@ namespace :dockly do
 
   task :load do
     raise "No #{Dockly.load_file} found!" unless File.exist?(Dockly.load_file)
-    Dockly.inst
+    Dockly.instance
   end
 
   task :assume_role => 'dockly:load' do
