@@ -17,7 +17,7 @@ module Dockly::History
   end
 
   def write_content_tag!
-    repo.tag(content_tag, repo.capturing.rev_parse('HEAD').chomp)
+    repo.tag('-f', content_tag, repo.capturing.rev_parse('HEAD').chomp)
   end
 
   def duplicate_build?
