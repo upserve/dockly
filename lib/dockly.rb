@@ -10,8 +10,9 @@ require 'open3'
 module Dockly
   LOAD_FILE = 'dockly.rb'
 
-  attr_reader :instance, :git_sha
-  attr_writer :load_file
+  class << self
+    attr_writer :load_file
+  end
 
   autoload :Foreman, 'dockly/foreman'
   autoload :BashBuilder, 'dockly/bash_builder'
@@ -30,7 +31,7 @@ module Dockly
     @load_file || LOAD_FILE
   end
 
-  def inst
+  def instance
     @instance ||= load_inst
   end
 
@@ -82,7 +83,7 @@ module Dockly
 
   [:debs, :rpms, :dockers, :foremans].each do |method|
     define_method(method) do
-      inst[method]
+      instance[method]
     end
 
     module_function method
@@ -96,7 +97,7 @@ module Dockly
   }.each do |method, klass|
     define_method(method) do |sym, &block|
       if block.nil?
-        inst[:"#{method}s"][sym]
+        instance[:"#{method}s"][sym]
       else
         klass.new!(:name => sym, &block)
       end

@@ -14,17 +14,40 @@ class Dockly::AbstractCommand < Clamp::Command
   end
 end
 
-class Dockly::BuildCommand < Dockly::AbstractCommand
+class Dockly::BuildOrCopyAllCommand < Dockly::AbstractCommand
+  def execute
+    super
+    Rake::Task["dockly:build_or_copy_all"].invoke
+  end
+end
+
+class Dockly::BuildDebCommand < Dockly::AbstractCommand
   parameter 'PACKAGE', 'the name to build the package for', :attribute_name => :package_name
-  option ['-f', '--force'], :flag, 'force the package build', :default => false, :attribute_name => :force
+  option ['-n', '--no-export'], :flag, 'do not export', :default => false, :attribute_name => :noexport
 
   def execute
     super
-    if package = Dockly.debs[package_name.to_sym]
-      if force? || !package.exists?
-        package.build
+    if Dockly.debs[package_name.to_sym]
+      if noexport?
+        Rake::Task["dockly:deb:prepare"].invoke(package_name)
       else
-        puts "Package already exists!"
+        Rake::Task["dockly:deb:build"].invoke(package_name)
+      end
+    end
+  end
+end
+
+class Dockly::BuildRpmCommand < Dockly::AbstractCommand
+  parameter 'PACKAGE', 'the name to build the package for', :attribute_name => :package_name
+  option ['-n', '--no-export'], :flag, 'do not export', :default => false, :attribute_name => :noexport
+
+  def execute
+    super
+    if Dockly.rpms[package_name.to_sym]
+      if noexport?
+        Rake::Task["dockly:rpm:prepare"].invoke(package_name)
+      else
+        Rake::Task["dockly:rpm:build"].invoke(package_name)
       end
     end
   end
@@ -32,20 +55,15 @@ end
 
 class Dockly::DockerCommand < Dockly::AbstractCommand
   parameter 'DOCKER', 'the name to generate the docker image for', :attribute_name => :docker_name
-  option ['-f', '--force'], :flag, 'force the package build', :default => false, :attribute_name => :force
   option ['-n', '--no-export'], :flag, 'do not export', :default => false, :attribute_name => :noexport
 
   def execute
     super
-    if docker = Dockly.dockers[docker_name.to_sym]
-      if force? || !docker.exists?
-        if noexport?
-          docker.generate_build
-        else
-          docker.generate!
-        end
+    if Dockly.dockers[docker_name.to_sym]
+      if noexport?
+        Rake::Task["dockly:docker:prepare"].invoke(docker_name)
       else
-        puts "Package already exists!"
+        Rake::Task["dockly:docker:build"].invoke(docker_name)
       end
     end
   end
@@ -56,9 +74,19 @@ class Dockly::ListCommand < Dockly::AbstractCommand
     super
     dockers = Dockly.dockers.dup
     debs = Dockly.debs
+    rpms = Dockly.rpms
 
     puts "Debs" unless debs.empty?
     debs.each_with_index do |(name, package), index|
+      puts "#{index + 1}. #{name}"
+      if package.docker
+        dockers.delete(package.docker.name)
+        puts " - Docker: #{package.docker.name}"
+      end
+    end
+
+    puts "RPMs" unless rpms.empty?
+    rpms.each_with_index do |(name, package), index|
       puts "#{index + 1}. #{name}"
       if package.docker
         dockers.delete(package.docker.name)
@@ -104,7 +132,10 @@ class Dockly::BuildCacheCommand < Dockly::AbstractCommand
 end
 
 class Dockly::Cli < Dockly::AbstractCommand
-  subcommand ['build', 'b'], 'Create package', Dockly::BuildCommand
+  subcommand ['build-or-copy-all'], 'Run build or copy all Rake task', Dockly::BuildOrCopyAllCommand
+  subcommand ['build', 'b'], 'Create deb package', Dockly::BuildDebCommand
+  subcommand ['build-deb', 'bd'], 'Create deb package', Dockly::BuildDebCommand
+  subcommand ['build-rpm', 'br'], 'Create RPM package', Dockly::BuildRpmCommand
   subcommand ['docker', 'd'], 'Generate docker image', Dockly::DockerCommand
   subcommand ['list', 'l'], 'List packages', Dockly::ListCommand
   subcommand ['build_cache', 'bc'], 'Build Cache commands', Dockly::BuildCacheCommand
