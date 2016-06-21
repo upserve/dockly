@@ -1,8 +1,8 @@
 module Dockly
   MAJOR = 3
-  MINOR = 2
+  MINOR = 3
   PATCH = 0
-  RELEASE = 'pre.1'
+  RELEASE = nil
 
   VERSION = [MAJOR, MINOR, PATCH, RELEASE].compact.join('.')
 end
