@@ -39,7 +39,8 @@ class Dockly::Docker
     Dockly.s3.copy_object(
       copy_source: File.join(s3_bucket, object),
       bucket: s3_bucket,
-      key: s3_object
+      key: s3_object,
+      acl: 'bucket-owner-full-control',
     )
     info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object}"
   end
