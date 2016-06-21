@@ -55,7 +55,8 @@ class Dockly::Deb
     Dockly.s3.copy_object(
       copy_source: File.join(s3_bucket, object),
       bucket: s3_bucket,
-      key: s3_object_name
+      key: s3_object_name,
+      acl: 'bucket-owner-full-control',
     )
     info "Successfully copied s3://#{s3_bucket}/#{object} to s3://#{s3_bucket}/#{s3_object_name}"
   end
@@ -81,7 +82,12 @@ class Dockly::Deb
     raise "Package wasn't created!" unless File.exist?(build_path)
     info "uploading package to s3"
     File.open(build_path, 'rb') do |file|
-      Dockly.s3.put_object(bucket: s3_bucket, key: s3_object_name, body: file)
+      Dockly.s3.put_object(
+        bucket: s3_bucket,
+        key: s3_object_name,
+        body: file,
+        acl: 'bucket-owner-full-control',
+      )
     end
   end
 

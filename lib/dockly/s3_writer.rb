@@ -72,8 +72,11 @@ module Dockly
     end
 
     def multipart_upload
-      @multipart_upload ||=
-        connection.create_multipart_upload(bucket: s3_bucket, key: s3_object)
+      @multipart_upload ||= connection.create_multipart_upload(
+        bucket: s3_bucket,
+        key: s3_object,
+        acl: 'bucket-owner-full-control',
+      )
     end
   end
 end
