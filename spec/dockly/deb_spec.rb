@@ -175,6 +175,25 @@ describe Dockly::Deb do
         expect(`dpkg --contents #{filename}`).to_not include("dockly-startup.sh")
       end
     end
+
+    context 'when package_startup_script is a string' do
+      context 'when the string is empty' do
+        before { subject.package_startup_script('') }
+
+        it 'does not place a startup script with the provided name in the package' do
+          expect{subject.create_package!}.to raise_error(ArgumentError)
+        end
+      end
+
+      context 'when the string is not empty' do
+        before { subject.package_startup_script('special-startup.sh') }
+
+        it 'places a startup script with the provided name in the package' do
+          subject.create_package!
+          expect(`dpkg --contents #{filename}`).to include("special-startup.sh")
+        end
+      end
+    end
   end
 
   describe '#exists?' do
