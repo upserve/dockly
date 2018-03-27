@@ -24,8 +24,9 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'minigit', '~> 0.0.4'
   gem.add_development_dependency 'cane'
   gem.add_development_dependency 'pry'
-  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rake', '< 11.0'
   gem.add_development_dependency 'rspec', '~> 2.14.1'
   gem.add_development_dependency 'vcr'
-  gem.add_development_dependency 'webmock'
+  gem.add_development_dependency 'webmock', '<= 1.18.0'
+  gem.add_development_dependency 'addressable', '<= 2.3.6'
 end

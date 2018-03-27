@@ -126,7 +126,14 @@ private
     add_files(@dir_package)
     add_docker_auth_config(@dir_package)
     add_docker(@dir_package)
-    add_startup_script(@dir_package) if package_startup_script
+
+    if package_startup_script.is_a?(String)
+      raise ArgumentError,
+            'package_startup_script filename must not be empty if specified' if package_startup_script.empty?
+      add_startup_script(@dir_package, package_startup_script)
+    elsif package_startup_script
+      add_startup_script(@dir_package)
+    end
 
     convert_package
 
@@ -229,16 +236,16 @@ private
     scripts.join("\n")
   end
 
-  def add_startup_script(package)
+  def add_startup_script(package, startup_script = "dockly-startup.sh")
     ensure_present! :build_dir
-    startup_script_path = File.join(build_dir, "dockly-startup.sh")
+    startup_script_path = File.join(build_dir, startup_script)
     File.open(startup_script_path, 'w+') do |f|
       f.write(post_startup_script)
       f.chmod(0755)
     end
     package.attributes[:prefix] = "/opt/dockly"
     Dir.chdir(build_dir) do
-      package.input("dockly-startup.sh")
+      package.input(startup_script)
     end
     package.attributes[:prefix] = nil
   end

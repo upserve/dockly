@@ -29,9 +29,9 @@ describe Dockly::Foreman do
         subject.create!
         File.exist?('build/foreman/foreman.target').should be_true
         File.exist?('build/foreman/foreman-web.target').should be_true
-        File.exist?('build/foreman/foreman-web-1.service').should be_true
-        File.read('build/foreman/foreman-web-1.service')
-            .lines.grep(/^ExecStart=\/bin\/bash -lc '\/bin\/sh start_my_server'$/)
+        File.exist?('build/foreman/foreman-web@.service').should be_true
+        File.open('build/foreman/foreman-web@.service')
+            .grep(/^ExecStart=\/bin\/bash -lc 'exec \/bin\/sh start_my_server'$/)
             .length.should == 1
       end
     end
