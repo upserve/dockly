@@ -147,7 +147,7 @@ describe Dockly::Docker do
       end
 
       context 'and it points to a non-S3 url' do
-        let(:url) { 'http://www.html5zombo.com' }
+        let(:url) { 'http://html5zombo.com' }
 
        before { subject.tag 'yolo' }
 

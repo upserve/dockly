@@ -177,7 +177,9 @@ class Dockly::Docker
     repo = "#{name}-base"
     tag = "dockly-#{Dockly::VERSION}-#{File.basename(import).split('.').first}"
     info "looking for imported base image with tag: #{tag}"
-    image = Docker::Image.all.find { |img| img.info['RepoTags'].include?("#{repo}:#{tag}") }
+    image = Docker::Image.all.find do |img|
+      img.info['RepoTags'] && img.info['RepoTags'].include?("#{repo}:#{tag}")
+    end
     if image
       info "found imported base image: #{image.id}"
       image
