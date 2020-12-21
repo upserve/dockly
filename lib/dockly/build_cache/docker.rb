@@ -77,7 +77,7 @@ class Dockly::BuildCache::Docker < Dockly::BuildCache::Base
     debug 'Restarting the container to copy the cache\'s output'
     # Restart the container so we can copy its output
     container = container.commit.run('sleep 3600')
-    container.copy(output_directory) { |chunk| file.write(chunk.to_s) }
+    container.archive_out(output_directory) { |chunk| file.write(chunk.to_s) }
     container.kill
     file.tap(&:rewind)
   end
