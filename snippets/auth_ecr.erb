@@ -1,0 +1,11 @@
+auth_ecr() {
+  $(aws ecr get-login --region us-east-1 --no-include-email)
+}
+
+worked=1
+for attempt in {1..200}; do
+  [[ $worked != 0 ]] || break
+  auth_ecr && worked=0 || (log "ecr auth: attempt $attempt failed, sleeping 30"; sleep 30)
+done
+[[ $worked != 0 ]] && fatal "failed to auth to ecr"
+log "ecr auth: successfully authenticated"

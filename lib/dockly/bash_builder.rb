@@ -24,6 +24,7 @@ module Dockly
     generate_snippet_for :s3_docker_import, [:s3_url, :repo, :tag]
     generate_snippet_for :s3_diff_docker_import, [:base_image, :diff_image, :repo, :tag]
     generate_snippet_for :registry_import, [:repo, :tag], { :tag => "latest" }
+    generate_snippet_for :auth_ecr, [:server_address]
 
     generate_snippet_for :docker_tag_latest, [:repo, :tag]
   end
