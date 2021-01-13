@@ -3,6 +3,76 @@ require 'spec_helper'
 describe Dockly::Docker do
   subject { described_class.new(:name => :test_docker) }
 
+  describe '#registry' do
+    context 'when there is no registry' do
+      it 'returns nil' do
+        expect(subject.registry).to eq(nil)
+      end
+    end
+
+    context 'when there is only an ecr registry' do
+      subject do
+        Dockly::Docker.new do
+          ecr { server_address 'accountid.dkr.ecr.region.amazonaws.com' }
+        end
+      end
+
+      it 'returns an ecr registry' do
+        registry = subject.registry
+
+        expect(registry).not_to eq(nil)
+        expect(registry).to be_a(Dockly::Docker::ECR)
+        expect(registry.server_address)
+          .to eq('accountid.dkr.ecr.region.amazonaws.com')
+      end
+    end
+
+    context 'when there is a docker registry' do
+      context 'and an ecr registry' do
+        subject do
+          Dockly::Docker.new do
+            registry do
+              username ENV['DOCKER_USER']
+              email ENV['DOCKER_EMAIL']
+              password ENV['DOCKER_PASS']
+            end
+
+            ecr { server_address 'accountid.dkr.ecr.region.amazonaws.com' }
+          end
+        end
+
+        it 'prefers the ecr registry' do
+          registry = subject.registry
+
+          expect(registry).not_to eq(nil)
+          expect(registry).to be_a(Dockly::Docker::ECR)
+          expect(registry.server_address)
+            .to eq('accountid.dkr.ecr.region.amazonaws.com')
+        end
+      end
+
+      context 'and only a docker registry' do
+        subject do
+          Dockly::Docker.new do
+            registry do
+              username ENV['DOCKER_USER']
+              email ENV['DOCKER_EMAIL']
+              password ENV['DOCKER_PASS']
+            end
+          end
+
+          it 'returns the docker registry' do
+            registry = subject.registry
+
+            expect(registry).not_to eq(nil)
+            expect(registry).to be_a(Dockly::Docker::Registry)
+            expect(registry.username).to eq(ENV['DOCKER_USER'])
+          end
+        end
+      end
+    end
+  end
+
   describe '#ensure_tar' do
     let(:action) { subject.ensure_tar(file) }
 
@@ -172,7 +242,7 @@ describe Dockly::Docker do
     context "with a registry export" do
       let(:registry) { double(:registry) }
       before do
-        subject.instance_variable_set(:"@registry", registry)
+        subject.instance_variable_set(:"@docker_registry", registry)
         expect(subject).to receive(:push_to_registry)
       end
 

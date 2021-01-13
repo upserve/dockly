@@ -10,11 +10,13 @@ class Dockly::Docker
   include Dockly::Util::Logger::Mixin
 
   autoload :Registry, 'dockly/docker/registry'
+  autoload :ECR, 'dockly/docker/ecr'
 
   logger_prefix '[dockly docker]'
 
   dsl_class_attribute :build_cache, Dockly::BuildCache.model, type: Array
-  dsl_class_attribute :registry, Dockly::Docker::Registry
+  dsl_class_attribute :docker_registry, Dockly::Docker::Registry
+  dsl_class_attribute :ecr, Dockly::Docker::ECR
 
   dsl_attribute :name, :import, :git_archive, :build, :tag, :build_dir, :package_dir,
     :timeout, :cleanup_images, :tar_diff, :s3_bucket, :s3_object_prefix
@@ -30,6 +32,10 @@ class Dockly::Docker
 
   def build_env(hash = nil)
     (@build_env ||= {}).tap { |env| env.merge!(hash) if hash.is_a?(Hash) }
+  end
+
+  def registry
+    ecr || docker_registry
   end
 
   def copy_from_s3(sha)
@@ -318,13 +324,21 @@ class Dockly::Docker
   end
 
   def push_to_registry(image)
-    ensure_present! :registry
+    raise "No registry to push to" if registry.nil?
+
     info "Exporting #{image.id} to Docker registry at #{registry.server_address}"
+
     registry.authenticate!
-    image = Docker::Image.all(:all => true).find { |img|
-      img.id.start_with?(image.id) || image.id.start_with?(img.id)
-    }
+
+    image =
+      Docker::Image
+        .all(:all => true)
+        .find do |img|
+          img.id.include?(image.id) || image.id.include?(img.id)
+        end
+
     raise "Could not find image after authentication" if image.nil?
+
     image.push(registry.to_h, :registry => registry.server_address)
   end
 
