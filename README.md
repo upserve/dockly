@@ -174,6 +174,11 @@ In addition to the above attributes, `docker` has the following references:
     - allows one
     - class: `Dockly::Docker::Registry`
     - description: a registry to push to in lieu of exporting as a tar -- the registry will be automatically pulled upon installing the package
+- `ecr`
+    - required: `false`
+    - allows one
+    - class: `Dockly::Docker::ECR`
+    - description: an AWS ECR Docker registry to push to in lieu of exporting as a tar -- the registry will be automatically pulled upon installing the package
 
 Need finer control of Docker packages? We also wrote [docker-api](https://github.com/swipely/docker-api).
 
@@ -199,6 +204,23 @@ The `registry` DSL is used to define Docker Registries. It has the following att
     - required: `true`
     - default: `https://index.docker.io/v1`
     - description: the server where the registry lives
+
+`ecr`
+--------
+
+The `ecr` DSL is used to define AWS ECR Docker registries. It has the following attributes:
+
+- `server_address`
+    - required: `true`
+    - description: the server where the registry lives without the repo name, eg `accountid.dkr.ecr.region.amazonaws.com`
+- `username`
+    - required: `false`
+    - default: pulled from auth data obtained using assumed role's credentials
+    - description: the username to authenticate
+- `password`
+    - required: `false`
+    - default: pulled from auth data obtained using assumed role's credentials
+    - description: the password to authenticate
 
 `foreman`
 ---------
