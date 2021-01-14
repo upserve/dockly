@@ -56,7 +56,8 @@ describe Dockly::Docker::ECR do
         end
 
         it 'raises' do
-          expect { subject.authenticate! }.to raise_error
+          expect { subject.authenticate! }
+            .to raise_error(/Could not authenticate/)
         end
       end
     end
