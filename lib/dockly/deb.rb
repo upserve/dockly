@@ -77,7 +77,6 @@ class Dockly::Deb
   end
 
   def upload_to_s3
-    info "uploading to s3"
     return if s3_bucket.nil?
     raise "Package wasn't created!" unless File.exist?(build_path)
     info "uploading package to s3"
@@ -181,7 +180,7 @@ private
   end
 
   def add_docker_auth_config(package)
-    return if (registry = get_registry).nil? || !registry.authentication_required?
+    return if (registry = get_registry).nil? || !should_auth?(registry)
     info "adding docker config file"
     registry.generate_config_file!
 
@@ -192,11 +191,18 @@ private
     package.attributes[:prefix] = nil
   end
 
+  def should_auth?(registry)
+    registry.is_a?(Dockly::Docker::Registry) &&
+      registry.authentication_required?
+  end
+
   def add_docker(package)
     return if docker.nil? || docker.s3_bucket
     info "adding docker image"
     docker.generate!
-    return unless docker.registry.nil?
+
+    return if get_registry
+
     package.attributes[:prefix] = docker.package_dir
     Dir.chdir(File.dirname(docker.tar_path)) do
       package.input(File.basename(docker.tar_path))
@@ -205,7 +211,7 @@ private
   end
 
   def get_registry
-    if docker && registry = docker.registry
+    if docker && (registry = docker.registry)
       registry
     end
   end
@@ -214,26 +220,39 @@ private
     scripts = ["#!/bin/bash"]
     bb = Dockly::BashBuilder.new
     scripts << bb.normalize_for_dockly
-    if get_registry
-      scripts << bb.registry_import(docker.repo, docker.tag)
-    elsif docker
-      if docker.s3_bucket.nil?
-        docker_output = File.join(docker.package_dir, docker.export_filename)
-        if docker.tar_diff
-          scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
-        else
-          scripts << bb.file_docker_import(docker_output, docker.name, docker.tag)
+
+    if docker
+      if (registry = docker.registry)
+        if registry.is_a?(Dockly::Docker::ECR)
+          scripts << bb.auth_ecr(registry.server_address)
         end
+        scripts << bb.registry_import(docker.repo, docker.tag)
       else
-        if docker.tar_diff
-          scripts << bb.s3_diff_docker_import(docker.import, docker.s3_url, docker.name, docker.tag)
-        else
-          scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
-        end
+        scripts += collect_non_registry_scripts(bb)
       end
-      scripts << bb.docker_tag_latest(docker.repo, docker.tag)
     end
+
     scripts.join("\n")
+  end
+
+  def collect_non_registry_scripts(bb)
+    scripts = []
+
+    if docker.s3_bucket.nil?
+      docker_output = File.join(docker.package_dir, docker.export_filename)
+      if docker.tar_diff
+        scripts << bb.file_diff_docker_import(docker.import, docker_output, docker.name, docker.tag)
+      else
+        scripts << bb.file_docker_import(docker_output, docker.name, docker.tag)
+      end
+    else
+      if docker.tar_diff
+        scripts << bb.s3_diff_docker_import(docker.import, docker.s3_url, docker.name, docker.tag)
+      else
+        scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
+      end
+    end
+    scripts << bb.docker_tag_latest(docker.repo, docker.tag)
   end
 
   def add_startup_script(package, startup_script = "dockly-startup.sh")
