@@ -32,8 +32,8 @@ describe Dockly::BashBuilder do
 
     context "when there is a tag" do
       it "tags the repo:tag as repo:latest" do
-        output = subject.docker_tag_latest("test_repo", "a_tag")
-        expect(output).to include("docker tag test_repo:a_tag test_repo:latest")
+        output = subject.docker_tag_latest("registry/test_repo", "a_tag", "test_repo")
+        expect(output).to include("docker tag registry/test_repo:a_tag test_repo:latest")
       end
     end
   end

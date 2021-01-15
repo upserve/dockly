@@ -1,3 +1,3 @@
 <% if data[:tag] %>
-docker tag <%= data[:repo] %>:<%= data[:tag] %> <%= data[:repo] %>:latest
+docker tag <%= data[:repo] %>:<%= data[:tag] %> <%= data[:new_name] %>:latest
 <% end %>
