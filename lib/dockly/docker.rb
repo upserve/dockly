@@ -339,7 +339,11 @@ class Dockly::Docker
 
     raise "Could not find image after authentication" if image.nil?
 
-    image.push(registry.to_h, :registry => registry.server_address)
+    image.push(registry.to_h, :registry => registry.server_address) do |resp|
+      if resp.include?('errorDetail')
+        raise "Error pushing to registry: #{resp}"
+      end
+    end
   end
 
   def fetch_import
