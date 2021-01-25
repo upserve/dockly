@@ -370,25 +370,23 @@ describe Dockly::Docker do
 
         context 'and the image is found' do
           let(:available_images) { [image] }
-          let(:error_msg) do
-            <<-EOF
-              {"errorDetail":{"message":"name unknown: The repository with name 'repository'
-              does not exist in the registry with id 'accoundid'"},"error":"name unknown:
-              The repository with name 'repository' does not exist in the registry with id 'accountid'"}
-            EOF
-          end
 
           before do
             allow(ecr)
               .to receive(:to_h)
               .and_return({})
+            allow(image)
+              .to receive(:push)
+              .and_yield(push_message)
           end
 
           context 'but the push to the registry fails' do
-            before do
-              allow(image)
-                .to receive(:push)
-                .and_yield(error_msg)
+            let(:push_message) do
+              <<-EOF
+                {"errorDetail":{"message":"name unknown: The repository with name 'repository'
+                does not exist in the registry with id 'accoundid'"},"error":"name unknown:
+                The repository with name 'repository' does not exist in the registry with id 'accountid'"}
+              EOF
             end
 
             it 'raises' do
@@ -398,7 +396,13 @@ describe Dockly::Docker do
           end
 
           context 'and the push to the registry succeeds' do
-            before { allow(image).to receive(:push) }
+            let(:push_message) do
+              <<-EOF
+                {"status":"Pushed","progressDetail":{},"id":"id"}
+                {"status":"sha: digest: digest size: 2048"}
+                {"progressDetail":{},"aux":{"Tag":"sha","Digest":"digest","Size":2048}}
+              EOF
+            end
 
             it 'passes' do
               expect(subject.push_to_registry(image))
