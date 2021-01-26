@@ -226,12 +226,13 @@ private
         if registry.is_a?(Dockly::Docker::ECR)
           scripts << bb.auth_ecr(registry.server_address)
         end
+
         scripts << bb.registry_import(docker.repo, docker.tag)
+        scripts << bb.docker_tag_latest(docker.repo, docker.tag, docker.name)
       else
         scripts += collect_non_registry_scripts(bb)
       end
     end
-
     scripts.join("\n")
   end
 
@@ -252,7 +253,8 @@ private
         scripts << bb.s3_docker_import(docker.s3_url, docker.name, docker.tag)
       end
     end
-    scripts << bb.docker_tag_latest(docker.repo, docker.tag)
+
+    scripts << bb.docker_tag_latest(docker.repo, docker.tag, docker.repo)
   end
 
   def add_startup_script(package, startup_script = "dockly-startup.sh")

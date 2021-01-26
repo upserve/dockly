@@ -313,6 +313,107 @@ describe Dockly::Docker do
     end
   end
 
+  describe '#push_to_registry', :docker do
+    let(:image) { Docker::Image.create('fromImage' => 'ubuntu:14.04') }
+    let(:ecr) { double(:ecr) }
+
+    context 'when there is no registry' do
+      it 'raises' do
+        expect(subject.registry).to eq(nil)
+
+        expect { subject.push_to_registry(image) }.to raise_error(/No registry/)
+      end
+    end
+
+    context 'when there is a registry' do
+      before do
+        subject.instance_variable_set(:"@ecr", ecr)
+
+        allow(ecr)
+          .to receive(:server_address)
+          .and_return('server_address')
+
+        expect(subject.registry).to eq(ecr)
+      end
+
+      context "that can't be authenticated to" do
+        before do
+          allow(ecr)
+            .to receive(:authenticate!)
+            .and_raise
+        end
+
+        it 'raises' do
+          expect { subject.push_to_registry(image) }
+            .to raise_error(StandardError)
+        end
+      end
+
+      context 'that can be authenticated to' do
+        before do
+          allow(ecr).to receive(:authenticate!)
+
+          allow(Docker::Image)
+            .to receive(:all)
+            .with(all: true)
+            .and_return(available_images)
+        end
+
+        context "but the image isn't found" do
+          let(:available_images) { [] }
+
+          it 'raises' do
+            expect { subject.push_to_registry(image) }
+              .to raise_error(/Could not find image after authentication/)
+          end
+        end
+
+        context 'and the image is found' do
+          let(:available_images) { [image] }
+
+          before do
+            allow(ecr)
+              .to receive(:to_h)
+              .and_return({})
+            allow(image)
+              .to receive(:push)
+              .and_yield(push_message)
+          end
+
+          context 'but the push to the registry fails' do
+            let(:push_message) do
+              <<-EOF
+                {"errorDetail":{"message":"name unknown: The repository with name 'repository'
+                does not exist in the registry with id 'accoundid'"},"error":"name unknown:
+                The repository with name 'repository' does not exist in the registry with id 'accountid'"}
+              EOF
+            end
+
+            it 'raises' do
+              expect { subject.push_to_registry(image) }
+                .to raise_error(/Error pushing to registry/)
+            end
+          end
+
+          context 'and the push to the registry succeeds' do
+            let(:push_message) do
+              <<-EOF
+                {"status":"Pushed","progressDetail":{},"id":"id"}
+                {"status":"sha: digest: digest size: 2048"}
+                {"progressDetail":{},"aux":{"Tag":"sha","Digest":"digest","Size":2048}}
+              EOF
+            end
+
+            it 'passes' do
+              expect(subject.push_to_registry(image))
+                .not_to raise_error
+            end
+          end
+        end
+      end
+    end
+  end
+
   describe '#export_image_diff', :docker do
     let(:images) { [] }
     let(:output) { StringIO.new }

@@ -26,6 +26,6 @@ module Dockly
     generate_snippet_for :registry_import, [:repo, :tag], { :tag => "latest" }
     generate_snippet_for :auth_ecr, [:server_address]
 
-    generate_snippet_for :docker_tag_latest, [:repo, :tag]
+    generate_snippet_for :docker_tag_latest, [:repo, :tag, :new_name]
   end
 end
