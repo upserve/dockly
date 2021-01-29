@@ -204,11 +204,15 @@ describe Dockly::Docker do
         let(:url) { 's3://bucket/object' }
         let(:data) { 'sweet, sweet data' }
 
+        let(:client) { double() }
+
         before do
-          allow(Dockly.s3)
+          allow(client)
             .to receive(:get_object)
-            .with(bucket: 'bucket', key: 'object')
+            .with(hash_including({ bucket: 'bucket', key: 'object' }))
             .and_yield(data)
+
+          allow(Dockly).to receive(:s3).and_return(client)
         end
 
         it 'pulls the file from S3' do

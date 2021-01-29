@@ -205,14 +205,19 @@ describe Dockly::Deb do
         pre_install "ls"
         post_install "rd /s /q C:\*"
         build_dir 'build/deb/s3'
+        s3_bucket 'bucket'
       end
     end
 
     context 'when the object does exist' do
       before do
-        allow(Dockly.s3)
-          .to receive(:head_object)
-          .and_return({})
+        allow(Dockly)
+          .to receive(:s3)
+          .and_return(
+            Aws::S3::Client.new(
+              stub_responses: { :head_object => {} }
+            )
+          )
       end
 
       it 'is true' do
@@ -222,12 +227,16 @@ describe Dockly::Deb do
 
     context 'when the object does not exist' do
       before do
-        allow(Dockly.s3)
-          .to receive(:head_object)
-          .and_raise(StandardError.new('object does not exist'))
+        allow(Dockly)
+          .to receive(:s3)
+          .and_return(
+            Aws::S3::Client.new(
+              stub_responses: { :head_object => 'ObjectDoesNotExist' }
+            )
+          )
       end
 
-      it 'is true' do
+      it 'is false' do
         expect(subject.exists?).to be_false
       end
     end
@@ -267,12 +276,24 @@ describe Dockly::Deb do
       context 'when the package has been created' do
         before { subject.create_package! }
 
+        let(:client) do
+          client = Aws::S3::Client.new(stub_responses: true)
+          client.stub_responses(
+            :put_object, ->(context) do
+              expect(context.params[:bucket]).to eq(bucket_name)
+              expect(context.params[:key]).to eq(subject.s3_object_name)
+              expect(context.params).to have_key(:body)
+
+              {}
+            end
+          )
+          client
+        end
+
         it 'inserts the deb package into that bucket' do
-          expect(Dockly.s3).to receive(:put_object) do |hash|
-            expect(hash[:bucket]).to eq(bucket_name)
-            expect(hash[:key]).to eq(subject.s3_object_name)
-            expect(hash).to have_key(:body)
-          end
+          expect(Dockly)
+            .to receive(:s3)
+            .and_return(client)
 
           subject.upload_to_s3
         end
