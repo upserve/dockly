@@ -14,8 +14,11 @@ describe Dockly::BuildCache::Base do
   describe '#up_to_date?' do
     context 'when the object exists in s3' do
       before do
-        allow(subject.connection)
-          .to receive(:head_object)
+        allow(Dockly)
+          .to receive(:s3)
+          .and_return(
+            Aws::S3::Client.new(stub_responses: true)
+          )
       end
 
       its(:up_to_date?) { should be_true }
@@ -23,9 +26,13 @@ describe Dockly::BuildCache::Base do
 
     context 'when the object does not exist in s3' do
       before do
-        allow(subject.connection)
-          .to receive(:head_object)
-          .and_raise(Aws::S3::Errors::NoSuchKey.new('Some Error', 500))
+        allow(Dockly)
+          .to receive(:s3)
+          .and_return(
+            Aws::S3::Client.new(
+              stub_responses: { :head_object => 'NoSuchKey' }
+            )
+          )
       end
 
       its(:up_to_date?) { should be_false }
@@ -37,9 +44,12 @@ describe Dockly::BuildCache::Base do
     let(:object) { double(:object) }
 
     before do
-      allow(subject.connection)
-        .to receive(:get_object)
-        .and_return(object)
+      allow(Dockly)
+        .to receive(:s3)
+        .and_return(Aws::S3::Client.new(
+          stub_responses: { :get_object => object }
+        ))
+
       allow(object)
         .to receive(:body)
         .and_return(StringIO.new('hey dad').tap(&:rewind))

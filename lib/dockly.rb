@@ -4,7 +4,9 @@ require 'dockly/util/git'
 require 'foreman/cli_fix'
 require 'foreman/export/base_fix'
 require 'minigit'
-require 'aws-sdk'
+require 'aws-sdk-core'
+require 'aws-sdk-s3'
+require 'aws-sdk-ecr'
 require 'open3'
 
 module Dockly
