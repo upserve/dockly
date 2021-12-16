@@ -1,0 +1,32 @@
+name: Unit Tests
+on: [push, pull_request]
+jobs:
+  docker-rspec:
+    runs-on:
+      - ubuntu-18.04
+    strategy:
+      matrix:
+        ruby:
+          - 2.7
+          - 2.6
+          - 2.5
+          - 2.4
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: install bundler
+        run: |
+          gem install bundler -v '~> 1.17.3'
+          bundle update
+      - name: install rpm
+        run: |
+          set -x
+          sudo apt-get update -y
+          sudo apt-get install -y rpm
+      - name: spec tests
+        run: CI=true bundle exec rake

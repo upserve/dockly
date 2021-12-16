@@ -31,5 +31,6 @@ private
     @deb_package.attributes[:rpm_user] = "root"
     @deb_package.attributes[:rpm_group] = "root"
     @deb_package.attributes[:rpm_os] = os
+    @deb_package.attributes[:workdir] = ::Dir.tmpdir
   end
 end

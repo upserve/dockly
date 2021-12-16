@@ -1,5 +1,8 @@
 auth_ecr() {
-  $(aws ecr get-login --region us-east-1 --no-include-email)
+  account_id=$(aws sts get-caller-identity --query Account --output text)
+  region="<%= ENV['AWS_REGION'] || 'us-east-1' %>"
+  aws ecr get-login-password --region $region | \
+    docker login --username AWS --password-stdin $account_id.dkr.ecr.$region.amazonaws.com
 }
 
 worked=1
