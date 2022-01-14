@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = %w{tomhulihan@swipely.com bright@swipely.com toddlunter@swipely.com}
   gem.description   = %q{Packaging made easy}
   gem.summary       = %q{Packaging made easy}
-  gem.homepage      = "https://github.com/swipely/dockly"
+  gem.homepage      = "https://github.com/upserve/dockly"
   gem.files         = `git ls-files`.split($\)
   gem.license       = 'MIT'
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
