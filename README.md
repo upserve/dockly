@@ -1,8 +1,6 @@
 [![Gem Version](https://badge.fury.io/rb/dockly.png)](http://badge.fury.io/rb/dockly)
-[![Build Status](https://travis-ci.org/swipely/dockly.png?branch=refactor_setup)](https://travis-ci.org/swipely/dockly)
-[![Dependency Status](https://gemnasium.com/swipely/dockly.png)](https://gemnasium.com/swipely/dockly)
 
-![Dockly](https://raw.github.com/swipely/dockly/master/img/dockly.png)
+![Dockly](https://raw.github.com/upserve/dockly/master/img/dockly.png)
 ======================================================================
 
 `dockly` is a gem made to ease the pain of packaging an application. For this gem to be useful, you will want to use [Docker](http://docker.io) for process isolation.
@@ -180,7 +178,7 @@ In addition to the above attributes, `docker` has the following references:
     - class: `Dockly::Docker::ECR`
     - description: an AWS ECR Docker registry to push to in lieu of exporting as a tar -- the registry will be automatically pulled upon installing the package
 
-Need finer control of Docker packages? We also wrote [docker-api](https://github.com/swipely/docker-api).
+Need finer control of Docker packages? We also wrote [docker-api](https://github.com/upserve/docker-api).
 
 `registry`
 --------

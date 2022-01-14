@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = %w{tomhulihan@swipely.com bright@swipely.com toddlunter@swipely.com}
   gem.description   = %q{Packaging made easy}
   gem.summary       = %q{Packaging made easy}
-  gem.homepage      = "https://github.com/swipely/dockly"
+  gem.homepage      = "https://github.com/upserve/dockly"
   gem.files         = `git ls-files`.split($\)
   gem.license       = 'MIT'
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "dockly"
   gem.require_paths = %w{lib}
   gem.version       = Dockly::VERSION
-  gem.add_dependency 'clamp', '~> 0.6'
+  gem.add_dependency 'clamp', '~> 1'
   gem.add_dependency 'docker-api', '>= 1.14.0'
   gem.add_dependency 'dockly-util', '>= 0.0.9', '< 1.0'
   gem.add_dependency 'excon'
