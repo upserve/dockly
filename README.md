@@ -1,5 +1,4 @@
 [![Gem Version](https://badge.fury.io/rb/dockly.png)](http://badge.fury.io/rb/dockly)
-[![Dependency Status](https://gemnasium.com/swipely/dockly.png)](https://gemnasium.com/swipely/dockly)
 
 ![Dockly](https://raw.github.com/upserve/dockly/master/img/dockly.png)
 ======================================================================
